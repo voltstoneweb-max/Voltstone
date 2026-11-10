@@ -8,9 +8,13 @@ export default function ChatBot() {
   const [msgs, setMsgs] = useState([{ role: 'bot', text: 'Hola, soy VoltBot. Pregúntame por prendas, tallas, envíos o devoluciones.' }]);
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
-  const endRef = useRef(null);
+  const logRef = useRef(null);
 
-  useEffect(() => endRef.current?.scrollIntoView({ behavior: 'smooth' }), [msgs, busy]);
+  // Bajamos solo el cuadro del chat; scrollIntoView podía mover toda la página.
+  useEffect(() => {
+    const el = logRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [msgs, busy]);
 
   async function send(e) {
     e.preventDefault();
@@ -46,9 +50,9 @@ export default function ChatBot() {
             exit={{ opacity: 0, y: 24 }}
             transition={{ duration: 0.2 }}
           >
-            <div className="chat-log" aria-live="polite">
+            <div className="chat-log" aria-live="polite" ref={logRef}>
               {msgs.map((m, i) => (
-                <p key={i} className={`bubble ${m.role} ${m.error ? 'err' : ''}`}>{m.text}</p>
+                <p key={i} className={`bubble ${m.role} ${m.error ? 'err' : ''}`}>{String(m.text ?? '')}</p>
               ))}
               {busy && <p className="bubble bot">Escribiendo…</p>}
               <div ref={endRef} />
