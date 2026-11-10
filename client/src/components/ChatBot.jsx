@@ -8,13 +8,16 @@ export default function ChatBot() {
   const [msgs, setMsgs] = useState([{ role: 'bot', text: 'Hola, soy VoltBot. Pregúntame por prendas, tallas, envíos o devoluciones.' }]);
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
-  const logRef = useRef(null);
+  const endRef = useRef(null);
 
-  // Bajamos solo el cuadro del chat; scrollIntoView podía mover toda la página.
+  useEffect(() => endRef.current?.scrollIntoView({ behavior: 'smooth' }), [msgs, busy]);
+
+  // Permite abrir el chat desde otras partes de la página (por ejemplo, el Centro de ayuda)
   useEffect(() => {
-    const el = logRef.current;
-    if (el) el.scrollTop = el.scrollHeight;
-  }, [msgs, busy]);
+    const open = () => setOpen(true);
+    window.addEventListener('voltbot:open', open);
+    return () => window.removeEventListener('voltbot:open', open);
+  }, []);
 
   async function send(e) {
     e.preventDefault();
@@ -50,9 +53,9 @@ export default function ChatBot() {
             exit={{ opacity: 0, y: 24 }}
             transition={{ duration: 0.2 }}
           >
-            <div className="chat-log" aria-live="polite" ref={logRef}>
+            <div className="chat-log" aria-live="polite">
               {msgs.map((m, i) => (
-                <p key={i} className={`bubble ${m.role} ${m.error ? 'err' : ''}`}>{String(m.text ?? '')}</p>
+                <p key={i} className={`bubble ${m.role} ${m.error ? 'err' : ''}`}>{m.text}</p>
               ))}
               {busy && <p className="bubble bot">Escribiendo…</p>}
               <div ref={endRef} />

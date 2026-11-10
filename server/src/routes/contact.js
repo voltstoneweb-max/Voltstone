@@ -1,11 +1,21 @@
 import { Router } from 'express';
+import { randomInt } from 'node:crypto';
 import rateLimit from 'express-rate-limit';
-import Message from '../models/Message.js';
+import Message, { REASONS } from '../models/Message.js';
 import { requireAdmin } from '../middleware/auth.js';
 import { asyncHandler, HttpError } from '../middleware/errors.js';
 
 const router = Router();
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const LABELS = {
+  producto: 'Pregunta sobre un producto',
+  pedido: 'Estado de mi pedido',
+  devolucion: 'Devolución o cambio de talla',
+  garantia: 'Garantía por defecto de fabricación',
+  pagos: 'Pagos y facturación',
+  pqrs: 'Petición, queja o reclamo',
+  otro: 'Otro tema'
+};
 
 // Evita spam en el formulario público
 const contactLimiter = rateLimit({
@@ -18,13 +28,25 @@ router.post(
   '/',
   contactLimiter,
   asyncHandler(async (req, res) => {
-    const { name, email, subject, message } = req.body || {};
-    if (!name || !email || !subject || !message) throw new HttpError(400, 'Completa todos los campos.');
+    const { name, email, message, reason = 'otro', orderNumber = '', productRef = '' } = req.body || {};
+    if (!name || !email || !message) throw new HttpError(400, 'Completa tu nombre, correo y mensaje.');
     // Solo texto: rechaza objetos (inyección NoSQL) antes de tocar la base de datos
-    if ([name, email, subject, message].some((v) => typeof v !== 'string')) throw new HttpError(400, 'Los campos deben ser texto.');
+    if ([name, email, message, reason, orderNumber, productRef].some((v) => typeof v !== 'string')) throw new HttpError(400, 'Los campos deben ser texto.');
     if (!EMAIL_RE.test(email)) throw new HttpError(400, 'El correo no tiene un formato válido.');
-    await Message.create({ name, email, subject, message });
-    res.status(201).json({ ok: true });
+    if (!REASONS.includes(reason)) throw new HttpError(400, 'Elige un motivo de contacto válido.');
+
+    // Número de caso para seguimiento (se reintenta si, por azar, ya existe)
+    let saved;
+    for (let i = 0; i < 3 && !saved; i++) {
+      const ticket = `VS-${new Date().getFullYear()}-${randomInt(100000, 1000000)}`;
+      try {
+        saved = await Message.create({ ticket, reason, orderNumber, productRef, name, email, subject: LABELS[reason], message });
+      } catch (err) {
+        if (err.code !== 11000) throw err;
+      }
+    }
+    if (!saved) throw new HttpError(500, 'No pudimos generar tu número de caso. Intenta de nuevo.');
+    res.status(201).json({ ok: true, ticket: saved.ticket });
   })
 );
 

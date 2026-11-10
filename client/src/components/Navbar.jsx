@@ -16,6 +16,7 @@ export default function Navbar() {
       <nav id="menu" className={`nav-links ${open ? 'open' : ''}`}>
         <NavLink to="/" end onClick={close}>Inicio</NavLink>
         <NavLink to="/catalogo" onClick={close}>Catálogo</NavLink>
+        <NavLink to="/ayuda" onClick={close}>Ayuda</NavLink>
         <NavLink to="/contacto" onClick={close}>Contacto</NavLink>
         <NavLink to="/admin" onClick={close}>Admin</NavLink>
       </nav>

@@ -1,19 +1,31 @@
 import mongoose from 'mongoose';
 
+/**
+ * Prenda del catálogo maestro. Casi todos los datos comerciales son opcionales:
+ * el catálogo se publica completo aunque todavía no haya foto, precio, tallas o stock.
+ */
 const productSchema = new mongoose.Schema(
   {
-    sku: { type: String, required: true, unique: true, trim: true }, // ej. CAM-H
+    // Si no se envía, se genera uno (por ejemplo al crear una prenda desde el panel)
+    sku: { type: String, unique: true, trim: true, default: () => 'VS-' + Date.now().toString(36).toUpperCase() },
     name: { type: String, required: true, trim: true, maxlength: 80 },
-    category: { type: String, required: true, enum: ['camiseta', 'polo', 'pantalon', 'chaqueta'] },
-    gender: { type: String, required: true, enum: ['hombre', 'mujer'] },
-    // Precio en COP, entero y con IVA incluido (política de precios de la empresa)
-    price: { type: Number, required: true, min: 0, validate: { validator: Number.isInteger, message: 'El precio debe ser un número entero.' } },
+    category: { type: String, required: true, trim: true, maxlength: 60 },
+    genders: { type: [{ type: String, enum: ['hombre', 'mujer'] }], default: ['hombre', 'mujer'] },
+    materials: { type: [String], default: [] }, // materiales recomendados (del catálogo maestro)
+    // Precio en COP entero con IVA incluido. null = "Precio por confirmar"
+    price: {
+      type: Number,
+      min: 0,
+      default: null,
+      validate: { validator: (v) => v == null || Number.isInteger(v), message: 'El precio debe ser un número entero.' }
+    },
     description: { type: String, default: '', maxlength: 600 },
     colors: { type: [String], default: [] },
-    sizes: { type: [String], default: ['S', 'M', 'L', 'XL'] },
-    stock: { type: Number, default: 0, min: 0 },
+    sizes: { type: [String], default: [] },
+    stock: { type: Number, min: 0, default: null }, // null = por confirmar
     imageUrl: { type: String, default: '' },
-    active: { type: Boolean, default: true } // false = oculto en el catálogo público
+    active: { type: Boolean, default: true }, // false = oculto en el catálogo público
+    order: { type: Number, default: 9999 } // orden de aparición (las prendas nuevas van al final)
   },
   { timestamps: true }
 );

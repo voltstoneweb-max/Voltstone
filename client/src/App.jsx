@@ -6,6 +6,7 @@ import Home from './pages/Home.jsx';
 import Catalog from './pages/Catalog.jsx';
 import Contact from './pages/Contact.jsx';
 import Admin from './pages/Admin.jsx';
+import Help from './pages/Help.jsx';
 
 export default function App() {
   return (
@@ -16,6 +17,7 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/catalogo" element={<Catalog />} />
           <Route path="/contacto" element={<Contact />} />
+          <Route path="/ayuda" element={<Help />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

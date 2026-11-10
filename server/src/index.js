@@ -8,6 +8,7 @@ import authRoutes from './routes/auth.js';
 import productRoutes from './routes/products.js';
 import contactRoutes from './routes/contact.js';
 import aiRoutes from './routes/ai.js';
+import questionRoutes from './routes/questions.js';
 
 const app = express();
 app.set('trust proxy', 1); // necesario detrás del proxy de Render para el rate limit
@@ -22,6 +23,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/questions', questionRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

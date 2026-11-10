@@ -27,13 +27,13 @@ test('catálogo público devuelve una lista de productos con campos esperados', 
   assert.equal(res.status, 200);
   const list = await res.json();
   assert.ok(Array.isArray(list) && list.length > 0, 'Catálogo vacío: ¿corriste npm run seed?');
-  for (const k of ['_id', 'name', 'price', 'sizes', 'stock']) assert.ok(k in list[0], `falta el campo ${k}`);
+  for (const k of ['_id', 'name', 'category', 'genders', 'materials']) assert.ok(k in list[0], `falta el campo ${k}`);
   assert.ok(list.every((p) => p.active), 'el público no debe ver productos ocultos');
 });
 
 test('el filtro por género funciona', async () => {
   const list = await (await call('/products?gender=mujer')).json();
-  assert.ok(list.every((p) => p.gender === 'mujer'));
+  assert.ok(list.every((p) => p.genders.includes('mujer')));
 });
 
 test('rutas de admin sin token devuelven 401', async () => {
@@ -81,6 +81,23 @@ test('CORS: un origen desconocido NO recibe permiso', async () => {
 test('encabezados de seguridad de helmet presentes', async () => {
   const res = await call('/health');
   assert.ok(res.headers.get('x-content-type-options'));
+});
+
+test('el catálogo maestro está completo (todas las categorías)', async () => {
+  const list = await (await call('/products')).json();
+  assert.ok(list.length >= 160, `Solo hay ${list.length} prendas: corre npm run seed`);
+  assert.ok(new Set(list.map((p) => p.category)).size >= 8);
+});
+
+test('preguntas: pública solo lista respondidas y valida la entrada', async () => {
+  assert.equal((await call('/questions')).status, 400);
+  assert.equal((await call('/questions', { method: 'POST', body: { productId: 'x', name: 'Ana', email: 'a@a.co', question: 'hola' } })).status, 400);
+  assert.equal((await call('/questions/all')).status, 401);
+});
+
+test('contacto: rechaza un motivo inventado', async () => {
+  const res = await call('/contact', { method: 'POST', body: { name: 'Ana', email: 'ana@correo.co', message: 'Mensaje de prueba largo', reason: 'hackeo' } });
+  assert.ok([400, 429].includes(res.status));
 });
 
 const { TEST_ADMIN_EMAIL: email, TEST_ADMIN_PASSWORD: password } = process.env;

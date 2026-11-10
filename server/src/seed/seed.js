@@ -1,8 +1,7 @@
 /**
- * Carga datos iniciales: 8 productos (4 prendas × hombre/mujer) y el administrador único.
+ * Carga datos iniciales: el catálogo maestro (166 prendas) y el administrador único.
  * Uso: npm run seed   (borra y recrea los productos y el admin; no toca los mensajes)
  *      npm run seed -- --yes   (sin pedir confirmación)
- * OJO: los precios son PROVISIONALES. Reemplázalos con los de VOLTSTONE_02_Catalogo_Maestro_v3.
  */
 import 'dotenv/config';
 import readline from 'node:readline/promises';
@@ -11,27 +10,10 @@ import mongoose from 'mongoose';
 import { connectDB } from '../config/db.js';
 import Product from '../models/Product.js';
 import Admin from '../models/Admin.js';
+import { CATALOG } from '../data/catalog.js';
 
-const base = [
-  { code: 'CAM', name: 'Camiseta Oversized', category: 'camiseta', price: 89900, colors: ['Negro', 'Blanco', 'Amarillo'], description: 'Corte holgado en tela fresca para clima cálido.' },
-  { code: 'POL', name: 'Polo Piqué', category: 'polo', price: 109900, colors: ['Negro', 'Gris', 'Blanco'], description: 'Polo de piqué que respira y mantiene la forma.' },
-  { code: 'CAR', name: 'Pantalón Cargo Utility', category: 'pantalon', price: 169900, colors: ['Negro', 'Verde oliva'], description: 'Cargo con bolsillos funcionales y caída urbana.' },
-  { code: 'COA', name: 'Chaqueta Coach', category: 'chaqueta', price: 219900, colors: ['Negro', 'Amarillo'], description: 'Chaqueta ligera tipo coach para noches templadas.' }
-];
-
-const products = base.flatMap((b) =>
-  [['hombre', 'H'], ['mujer', 'M']].map(([gender, g]) => ({
-    sku: `${b.code}-${g}`,
-    name: `${b.name} ${gender === 'hombre' ? 'Hombre' : 'Mujer'}`,
-    category: b.category,
-    gender,
-    price: b.price,
-    colors: b.colors,
-    description: b.description,
-    sizes: ['S', 'M', 'L', 'XL'],
-    stock: 24
-  }))
-);
+// Catálogo maestro completo (sin precios: se completan desde el panel de administración)
+const products = CATALOG.map((p) => ({ ...p, price: null, stock: null, sizes: [], colors: [], description: '' }));
 
 try {
   const { MONGODB_URI, ADMIN_EMAIL, ADMIN_PASSWORD } = process.env;

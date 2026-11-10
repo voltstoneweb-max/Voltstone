@@ -1,0 +1,37 @@
+/**
+ * Preguntas frecuentes del Centro de ayuda. Fuente: políticas de VOLTSTONE_01_Empresa_v3.md.
+ * Si una política cambia, hay que cambiarla aquí y en server/src/data/brand.js (lo que sabe VoltBot).
+ */
+export const FAQ = [
+  {
+    group: 'Envíos',
+    items: [
+      ['¿Cuánto cuesta el envío?', 'En Colombia el envío tiene un valor fijo de $10.000. El envío internacional se cotiza y se muestra antes de pagar.'],
+      ['¿Cuánto tarda en llegar mi pedido?', 'Cali y alrededores: 1 día hábil. Ciudades principales: 2 a 4 días hábiles. Ciudades intermedias: 3 a 5. Zonas remotas: 5 a 8. Internacional: 7 a 15 días.'],
+      ['¿Cuándo sale mi pedido?', 'Si pagas antes de las 14:00 de un día hábil, sale ese mismo día. Si pagas después, sale el siguiente día hábil.']
+    ]
+  },
+  {
+    group: 'Devoluciones y cambios',
+    items: [
+      ['¿Puedo devolver una prenda?', 'Sí. Tienes 5 días hábiles desde la entrega (derecho de retracto). La prenda debe estar sin uso, sin lavar, con etiquetas y en su empaque. El envío de la devolución lo pagas tú, salvo que haya un defecto o un error de VOLTSTONE.'],
+      ['¿Cuándo recibo mi reembolso?', 'Por el mismo medio de pago, dentro de los 15 días calendario después de que recibamos la prenda.'],
+      ['¿Puedo cambiar de talla?', 'Sí, un cambio gratis por pedido, sujeto a disponibilidad. VOLTSTONE paga el envío de la talla nueva.']
+    ]
+  },
+  {
+    group: 'Garantía y pedidos',
+    items: [
+      ['¿Qué cubre la garantía?', 'Tienes 30 días desde la entrega para reclamar por defectos de fabricación.'],
+      ['¿Puedo cancelar un pedido?', 'Solo antes del despacho. Después del despacho aplica la devolución o el cambio.']
+    ]
+  },
+  {
+    group: 'Precios y reseñas',
+    items: [
+      ['¿Los precios incluyen IVA?', 'Sí. Los precios se muestran en pesos colombianos enteros, con el IVA del 19% incluido.'],
+      ['¿Quién puede dejar reseñas?', 'Solo compradores verificados.'],
+      ['¿Cómo presento una petición, queja o reclamo?', 'Usa el formulario de contacto y elige "Petición, queja o reclamo". Recibirás un número de radicado y una respuesta en máximo 15 días hábiles.']
+    ]
+  }
+];

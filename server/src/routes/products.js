@@ -4,24 +4,25 @@ import { requireAdmin } from '../middleware/auth.js';
 import { asyncHandler, HttpError } from '../middleware/errors.js';
 
 const router = Router();
-const FIELDS = ['sku', 'name', 'category', 'gender', 'price', 'description', 'colors', 'sizes', 'stock', 'imageUrl', 'active'];
+const FIELDS = ['sku', 'name', 'category', 'genders', 'materials', 'price', 'description', 'colors', 'sizes', 'stock', 'imageUrl', 'active'];
 // Solo se aceptan campos conocidos (evita que el cliente escriba campos arbitrarios)
 const pick = (body) => Object.fromEntries(FIELDS.filter((f) => body[f] !== undefined).map((f) => [f, body[f]]));
+const SORT = { order: 1, sku: 1 }; // orden del catálogo maestro
 
-// Público: solo productos activos. Filtros opcionales ?gender=hombre&category=polo
+// Público: solo productos activos. Filtros opcionales ?gender=mujer&category=Pantalones
 router.get(
   '/',
   asyncHandler(async (req, res) => {
     const filter = { active: true };
     // typeof === 'string' bloquea inyección NoSQL por query (?gender[$ne]=x)
-    if (typeof req.query.gender === 'string') filter.gender = req.query.gender;
+    if (typeof req.query.gender === 'string') filter.genders = req.query.gender;
     if (typeof req.query.category === 'string') filter.category = req.query.category;
-    res.json(await Product.find(filter).sort({ category: 1, gender: 1 }));
+    res.json(await Product.find(filter).sort(SORT));
   })
 );
 
 // Admin: lista completa (incluye ocultos)
-router.get('/all', requireAdmin, asyncHandler(async (_req, res) => res.json(await Product.find().sort({ createdAt: -1 }))));
+router.get('/all', requireAdmin, asyncHandler(async (_req, res) => res.json(await Product.find().sort(SORT))));
 
 router.post('/', requireAdmin, asyncHandler(async (req, res) => res.status(201).json(await Product.create(pick(req.body || {})))));
 
