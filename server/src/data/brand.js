@@ -14,7 +14,7 @@ export const BRAND = {
     'Entrega en Cali y alrededores: 1 día hábil. Ciudades principales: 2 a 4 días hábiles. Ciudades intermedias: 3 a 5. Zonas remotas: 5 a 8. Internacional: 7 a 15.',
     'Si se paga antes de las 14:00 de un día hábil, el pedido sale ese día; si no, el siguiente día hábil.',
     'Retracto: 5 días hábiles desde la entrega, con la prenda sin uso, sin lavar, con etiquetas y en su empaque. El envío de devolución lo paga el cliente salvo defecto o error de VOLTSTONE.',
-    'Reembolso por el mismo medio de pago dentro de 15 días calendario después de recibir la prenda.',
+    'Reembolso por el mismo medio de pago en máximo 30 días calendario.',
     'Garantía de 30 días desde la entrega por defectos de fabricación.',
     'Cambio de talla: uno gratis por pedido, sujeto a stock; VOLTSTONE paga el envío de la talla nueva.',
     'Cancelación: solo antes del despacho.',
