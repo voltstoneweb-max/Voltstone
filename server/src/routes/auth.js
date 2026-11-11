@@ -27,7 +27,7 @@ router.post(
     const match = await bcrypt.compare(String(password), admin?.passwordHash || DUMMY_HASH);
     // Mismo mensaje si falla el correo o la clave: no revela cuál es incorrecto
     if (!admin || !match) throw new HttpError(401, 'Correo o clave incorrectos.');
-    const token = jwt.sign({ id: admin._id, email: admin.email }, process.env.JWT_SECRET, { expiresIn: '8h', algorithm: 'HS256' });
+    const token = jwt.sign({ id: admin._id, email: admin.email, role: 'admin' }, process.env.JWT_SECRET, { expiresIn: '8h', algorithm: 'HS256' });
     res.json({ token, email: admin.email });
   })
 );

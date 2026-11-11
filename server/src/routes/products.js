@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import mongoose from 'mongoose';
 import Product from '../models/Product.js';
 import { requireAdmin } from '../middleware/auth.js';
 import { asyncHandler, HttpError } from '../middleware/errors.js';
@@ -23,6 +24,17 @@ router.get(
 
 // Admin: lista completa (incluye ocultos)
 router.get('/all', requireAdmin, asyncHandler(async (_req, res) => res.json(await Product.find().sort(SORT))));
+
+// Público: una prenda activa (página de producto). Va después de /all para que no se confundan.
+router.get(
+  '/:id',
+  asyncHandler(async (req, res) => {
+    if (!mongoose.isValidObjectId(req.params.id)) throw new HttpError(400, 'El identificador del producto no es válido.');
+    const product = await Product.findOne({ _id: req.params.id, active: true });
+    if (!product) throw new HttpError(404, 'No encontramos esa prenda.');
+    res.json(product);
+  })
+);
 
 router.post('/', requireAdmin, asyncHandler(async (req, res) => res.status(201).json(await Product.create(pick(req.body || {})))));
 

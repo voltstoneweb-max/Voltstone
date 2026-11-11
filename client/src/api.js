@@ -8,9 +8,20 @@ export const auth = {
   clear: () => sessionStorage.removeItem(TOKEN_KEY)
 };
 
-export async function request(path, { method = 'GET', body, admin = false } = {}) {
+// Sesión del cliente (cuenta de la tienda), separada de la del administrador
+const CUSTOMER_KEY = 'voltstone_customer';
+export const customer = {
+  get: () => {
+    try { return JSON.parse(sessionStorage.getItem(CUSTOMER_KEY)); } catch { return null; }
+  },
+  set: (data) => { sessionStorage.setItem(CUSTOMER_KEY, JSON.stringify(data)); window.dispatchEvent(new Event('voltstone:customer')); },
+  clear: () => { sessionStorage.removeItem(CUSTOMER_KEY); window.dispatchEvent(new Event('voltstone:customer')); }
+};
+
+export async function request(path, { method = 'GET', body, admin = false, asCustomer = false } = {}) {
   const headers = { 'Content-Type': 'application/json' };
   if (admin && auth.get()) headers.Authorization = `Bearer ${auth.get()}`;
+  if (asCustomer && customer.get()) headers.Authorization = `Bearer ${customer.get().token}`;
 
   let res;
   try {
@@ -22,6 +33,7 @@ export async function request(path, { method = 'GET', body, admin = false } = {}
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
     if (res.status === 401 && admin) auth.clear(); // sesión vencida: se fuerza nuevo login
+    if (res.status === 401 && asCustomer) customer.clear();
     throw new Error(data?.error?.message || `Error ${res.status}`);
   }
   return data;

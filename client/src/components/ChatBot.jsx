@@ -10,7 +10,11 @@ export default function ChatBot() {
   const [busy, setBusy] = useState(false);
   const endRef = useRef(null);
 
-  useEffect(() => endRef.current?.scrollIntoView({ behavior: 'smooth' }), [msgs, busy]);
+  // Importante: las llaves evitan que el efecto devuelva el resultado de scrollIntoView
+  // (React espera que un efecto devuelva solo una función de limpieza o nada: eso causaba "destroy is not a function").
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [msgs, busy]);
 
   // Permite abrir el chat desde otras partes de la página (por ejemplo, el Centro de ayuda)
   useEffect(() => {

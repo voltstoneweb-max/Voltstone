@@ -109,3 +109,108 @@ test('login real + panel + cierre (solo si defines TEST_ADMIN_*)', { skip: !(ema
   assert.equal(res.status, 200);
   assert.ok(Array.isArray(await res.json()));
 });
+
+
+// ---------- Fase 2: rastreo de pedidos y cuentas de cliente ----------
+test('el rastreo devuelve el estado de un pedido de ejemplo sin datos personales', async () => {
+  const res = await call('/orders/track/VOLT-1001');
+  assert.equal(res.status, 200, 'Pedido de ejemplo no encontrado: ¿corriste npm run seed?');
+  const order = await res.json();
+  assert.equal(order.code, 'VOLT-1001');
+  assert.ok(['Pendiente', 'Pagado', 'En preparación', 'Empacado', 'Enviado', 'Entregado', 'Cancelado'].includes(order.status));
+  assert.ok(Array.isArray(order.items) && order.items.length > 0);
+  for (const k of ['customerEmail', 'customerName']) assert.ok(!(k in order), `el rastreo público no debe mostrar ${k}`);
+});
+
+test('el rastreo rechaza números mal escritos y pedidos que no existen', async () => {
+  assert.equal((await call('/orders/track/ABC-1')).status, 400);
+  assert.equal((await call('/orders/track/VOLT-999999')).status, 404);
+});
+
+test('rutas de pedidos del administrador sin token devuelven 401', async () => {
+  assert.equal((await call('/orders')).status, 401);
+  assert.equal((await call('/orders/VOLT-1001/status', { method: 'PATCH', body: { status: 'Entregado' } })).status, 401);
+});
+
+test('crear cuenta exige aceptar términos y datos personales', async () => {
+  const res = await call('/customers/register', { method: 'POST', body: { name: 'Prueba', email: 'prueba@example.com', password: 'clave-larga-123', acceptTerms: false, acceptDataPolicy: true } });
+  assert.equal(res.status, 400);
+});
+
+test('el login de cliente con datos inventados devuelve 401', async () => {
+  const res = await call('/customers/login', { method: 'POST', body: { email: 'nadie-existe@example.com', password: 'cualquiera123' } });
+  assert.equal(res.status, 401);
+});
+
+test('/customers/me sin token devuelve 401', async () => {
+  assert.equal((await call('/customers/me')).status, 401);
+});
+
+// Crea una cuenta de prueba en la base de datos: solo se ejecuta si lo pides (TEST_REGISTER=1)
+test('un token de cliente NO abre las rutas del administrador', { skip: process.env.TEST_REGISTER !== '1' }, async () => {
+  const email = `prueba+${Date.now()}@example.com`;
+  const reg = await call('/customers/register', { method: 'POST', body: { name: 'Prueba Auto', email, password: 'clave-larga-123', acceptTerms: true, acceptDataPolicy: true } });
+  assert.equal(reg.status, 201);
+  const { token } = await reg.json();
+  const me = await call('/customers/me', { headers: { Authorization: `Bearer ${token}` } });
+  assert.equal(me.status, 200);
+  const admin = await call('/products/all', { headers: { Authorization: `Bearer ${token}` } });
+  assert.equal(admin.status, 403, 'un cliente no debe entrar al panel');
+});
+
+
+// ---------- Fase 3: página de producto, envíos y compra ----------
+// Rechazo esperado: 400 (datos inválidos) o 429 (límite de pedidos seguidos si repites las pruebas varias veces)
+const rejected = (res) => assert.ok([400, 429].includes(res.status), `se esperaba 400 o 429 y llegó ${res.status}`);
+test('una prenda por id existe y un id inválido o inexistente se rechaza', async () => {
+  const list = await (await call('/products')).json();
+  const ok = await call(`/products/${list[0]._id}`);
+  assert.equal(ok.status, 200);
+  assert.equal((await ok.json())._id, list[0]._id);
+  assert.equal((await call('/products/no-es-un-id')).status, 400);
+  assert.equal((await call('/products/000000000000000000000000')).status, 404);
+});
+
+test('el envío es fijo de $10.000 y hay ciudades con su tiempo de entrega', async () => {
+  const res = await call('/orders/shipping');
+  assert.equal(res.status, 200);
+  const data = await res.json();
+  assert.equal(data.fee, 10000);
+  assert.ok(data.cities.length >= 10 && data.cities.every((c) => c.name && c.min >= 1 && c.max >= c.min));
+  assert.deepEqual(data.paymentMethods, ['Tarjeta', 'PSE', 'Contra entrega']);
+});
+
+test('comprar rechaza datos incompletos, bolsa vacía y términos sin aceptar', async () => {
+  const base = { name: 'Prueba', email: 'prueba@example.com', phone: '3001234567', city: 'Cali', address: 'Calle 1 # 2-3', paymentMethod: 'PSE', acceptTerms: true };
+  rejected(await call('/orders', { method: 'POST', body: {} }));
+  rejected(await call('/orders', { method: 'POST', body: { ...base, items: [] } }));
+  rejected(await call('/orders', { method: 'POST', body: { ...base, acceptTerms: false, items: [{ productId: '000000000000000000000000', size: 'M', qty: 1 }] } }));
+  rejected(await call('/orders', { method: 'POST', body: { ...base, items: [{ productId: 'x', size: 'M', qty: 1 }] } }));
+});
+
+test('comprar una prenda inexistente o con cantidad absurda se rechaza sin tocar el stock', async () => {
+  const base = { name: 'Prueba', email: 'prueba@example.com', phone: '3001234567', city: 'Cali', address: 'Calle 1 # 2-3', paymentMethod: 'Contra entrega', acceptTerms: true };
+  rejected(await call('/orders', { method: 'POST', body: { ...base, items: [{ productId: '000000000000000000000000', size: 'M', qty: 1 }] } }));
+  const list = await (await call('/products')).json();
+  rejected(await call('/orders', { method: 'POST', body: { ...base, items: [{ productId: list[0]._id, size: 'M', qty: 999 }] } }));
+});
+
+test('/orders/mine sin sesión devuelve 401', async () => {
+  assert.equal((await call('/orders/mine')).status, 401);
+});
+
+// Compra completa: descuenta stock de verdad y crea un pedido. Solo si lo pides (TEST_BUY=1)
+test('compra completa: crea el pedido, descuenta el stock y se puede rastrear', { skip: process.env.TEST_BUY !== '1' }, async () => {
+  const list = await (await call('/products')).json();
+  const p = list.find((x) => x.price != null && x.stock >= 3 && x.sizes.length);
+  assert.ok(p, 'No hay una prenda con stock suficiente: corre npm run seed');
+  const res = await call('/orders', { method: 'POST', body: { name: 'Prueba Auto', email: 'prueba@example.com', phone: '3001234567', city: 'Cali', address: 'Calle 1 # 2-3', paymentMethod: 'Tarjeta', acceptTerms: true, items: [{ productId: p._id, size: p.sizes[0], qty: 1 }] } });
+  assert.equal(res.status, 201);
+  const { code, status, total } = await res.json();
+  assert.match(code, /^VOLT-\d+$/);
+  assert.equal(status, 'Pagado');
+  assert.equal(total, p.price + 10000);
+  const after = await (await call(`/products/${p._id}`)).json();
+  assert.equal(after.stock, p.stock - 1);
+  assert.equal((await call(`/orders/track/${code}`)).status, 200);
+});

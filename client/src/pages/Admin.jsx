@@ -5,6 +5,7 @@ import { cop, genderText, norm } from '../utils/format.js';
 import { Spinner } from '../components/Loader.jsx';
 import ErrorBox from '../components/ErrorBox.jsx';
 import AdminLogin from './AdminLogin.jsx';
+import AdminOrders from './AdminOrders.jsx';
 
 const EMPTY = { sku: '', name: '', category: 'Ropa superior', genders: 'ambos', materials: '', price: '', stock: '', sizes: '', colors: '', description: '', imageUrl: '' };
 const CATEGORIES = ['Ropa superior', 'Pantalones', 'Shorts y faldas', 'Vestidos y monos', 'Ropa deportiva', 'Abrigos y exteriores', 'Ropa interior y base layers', 'Accesorios textiles'];
@@ -186,7 +187,7 @@ export default function Admin() {
   const [logged, setLogged] = useState(!!auth.get());
   const [tab, setTab] = useState('products');
   if (!logged) return <AdminLogin onLogin={() => setLogged(true)} />;
-  const tabs = [['products', 'Catálogo'], ['messages', 'Casos'], ['questions', 'Preguntas']];
+  const tabs = [['products', 'Catálogo'], ['orders', 'Pedidos'], ['messages', 'Casos'], ['questions', 'Preguntas']];
   return (
     <section className="section">
       <div className="row between">
@@ -196,7 +197,7 @@ export default function Admin() {
       <div className="row" role="tablist">
         {tabs.map(([v, t]) => <button key={v} role="tab" aria-selected={tab === v} className={`chip ${tab === v ? 'active' : ''}`} onClick={() => setTab(v)}>{t}</button>)}
       </div>
-      {tab === 'products' ? <Products /> : tab === 'messages' ? <Messages /> : <Questions />}
+      {tab === 'products' ? <Products /> : tab === 'orders' ? <AdminOrders /> : tab === 'messages' ? <Messages /> : <Questions />}
     </section>
   );
 }

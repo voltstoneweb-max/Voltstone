@@ -1,10 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useApi } from '../hooks/useApi.js';
 import { request } from '../api.js';
 import { norm } from '../utils/format.js';
 import ProductCard from '../components/ProductCard.jsx';
-import ProductModal from '../components/ProductModal.jsx';
 import { SkeletonGrid } from '../components/Loader.jsx';
 import ErrorBox from '../components/ErrorBox.jsx';
 
@@ -27,7 +26,6 @@ export default function Catalog() {
   const gender = params.get('genero') || '';
   const category = params.get('categoria') || '';
   const q = params.get('q') || '';
-  const [selected, setSelected] = useState(null);
 
   const setParam = (k, v) => {
     const next = new URLSearchParams(params);
@@ -40,7 +38,7 @@ export default function Catalog() {
   const categories = useMemo(() => [...new Set((data || []).map((p) => p.category))], [data]);
   const shown = useMemo(() => {
     const term = norm(q.trim());
-    return (data || []).filter((p) => (!category || p.category === category) && (!term || norm([p.name, p.category, p.sku, ...p.materials].join(' ')).includes(term)));
+    return (data || []).filter((p) => (!category || p.category === category) && (!term || norm([p.name, p.category, ...p.materials].join(' ')).includes(term)));
   }, [data, category, q]);
   const groups = categories.map((c) => [c, shown.filter((p) => p.category === c)]).filter(([, list]) => list.length);
 
@@ -53,7 +51,7 @@ export default function Catalog() {
 
       <label className="search">
         <span className="sr-only">Buscar prenda o material</span>
-        <input type="search" placeholder="Buscar prenda, material o código (ej. lino, cargo, SUP-001)" value={q} onChange={(e) => setParam('q', e.target.value)} />
+        <input type="search" placeholder="Buscar prenda o material (ej. lino, cargo, polo)" value={q} onChange={(e) => setParam('q', e.target.value)} />
       </label>
       <div className="filters">
         <Chips label="Género" options={GENDERS} value={gender} onChange={(v) => setParam('genero', v)} />
@@ -66,10 +64,9 @@ export default function Catalog() {
       {groups.map(([c, list]) => (
         <div key={c} className="cat-block">
           <h2 className="cat-title">{c} <small>{list.length}</small></h2>
-          <div className="grid">{list.map((p) => <ProductCard key={p._id} p={p} onOpen={setSelected} />)}</div>
+          <div className="grid">{list.map((p) => <ProductCard key={p._id} p={p} />)}</div>
         </div>
       ))}
-      {selected && <ProductModal p={selected} onClose={() => setSelected(null)} />}
     </section>
   );
 }

@@ -15,7 +15,7 @@ export const FAQ = [
     group: 'Devoluciones y cambios',
     items: [
       ['¿Puedo devolver una prenda?', 'Sí. Tienes 5 días hábiles desde la entrega (derecho de retracto). La prenda debe estar sin uso, sin lavar, con etiquetas y en su empaque. El envío de la devolución lo pagas tú, salvo que haya un defecto o un error de VOLTSTONE.'],
-      ['¿Cuándo recibo mi reembolso?', 'Por el mismo medio de pago, dentro de los 15 días calendario después de que recibamos la prenda.'],
+      ['¿Cuándo recibo mi reembolso?', 'Por el mismo medio de pago, en máximo 30 días calendario.'],
       ['¿Puedo cambiar de talla?', 'Sí, un cambio gratis por pedido, sujeto a disponibilidad. VOLTSTONE paga el envío de la talla nueva.']
     ]
   },

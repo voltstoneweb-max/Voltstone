@@ -5,7 +5,7 @@ import { norm } from '../utils/format.js';
 
 // Atajos estilo "Centro de ayuda": cada uno lleva al formulario con el motivo ya elegido
 const OPTIONS = [
-  ['Estado de mi pedido', 'Consulta dónde va tu compra.', '/contacto?motivo=pedido'],
+  ['Rastrear mi pedido', 'Consulta dónde va tu compra con su número.', '/rastreo'],
   ['Devolver o cambiar una prenda', 'Retracto de 5 días hábiles y cambio de talla.', '/contacto?motivo=devolucion'],
   ['Garantía', 'Reclama por defectos de fabricación (30 días).', '/contacto?motivo=garantia'],
   ['Preguntar por un producto', 'Abre una prenda del catálogo y pregúntale al vendedor.', '/catalogo'],

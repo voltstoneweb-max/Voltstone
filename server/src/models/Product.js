@@ -24,6 +24,7 @@ const productSchema = new mongoose.Schema(
     sizes: { type: [String], default: [] },
     stock: { type: Number, min: 0, default: null }, // null = por confirmar
     imageUrl: { type: String, default: '' },
+    images: { type: [String], default: [] }, // galería de la página de producto (si está vacía se usa imageUrl)
     active: { type: Boolean, default: true }, // false = oculto en el catálogo público
     order: { type: Number, default: 9999 } // orden de aparición (las prendas nuevas van al final)
   },
