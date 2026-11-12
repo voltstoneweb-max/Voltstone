@@ -72,7 +72,7 @@ export default function Footer() {
             <p className="footer-note" role="status">Listo, quedaste suscrito.</p>
           ) : (
             <form className="footer-sub" onSubmit={subscribe} noValidate>
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Tu correo" aria-label="Tu correo" />
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Tu correo" aria-label="Recibir novedades" />
               <button className="btn">Unirme</button>
             </form>
           )}

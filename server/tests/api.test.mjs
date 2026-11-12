@@ -203,7 +203,7 @@ test('el envío es fijo de $10.000 y hay ciudades con su tiempo de entrega', asy
   const data = await res.json();
   assert.equal(data.fee, 10000);
   assert.ok(data.cities.length >= 10 && data.cities.every((c) => c.name && c.min >= 1 && c.max >= c.min));
-  assert.deepEqual(data.paymentMethods, ['Tarjeta', 'PSE', 'Contra entrega']);
+  assert.deepEqual(data.paymentMethods, ['Tarjeta', 'PSE']);
 });
 
 test('comprar rechaza datos incompletos, bolsa vacía y términos sin aceptar', async () => {

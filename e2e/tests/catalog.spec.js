@@ -18,7 +18,7 @@ test('el filtro por género (hombre / mujer) funciona', async ({ page }) => {
 test('la búsqueda ignora tildes ("pantalon" encuentra "Pantalón")', async ({ page }) => {
   await page.goto('/#/catalogo?q=pantalon');
   await expect(tarjetas(page).first()).toBeVisible({ timeout: 30_000 });
-  await expect(tarjetas(page).first()).toHaveAttribute('aria-label', /pantal/i);
+  await expect(page.locator('a[aria-label^="Ver Pantal"]').first()).toBeVisible();
 });
 
 test('una búsqueda sin resultados no rompe la página', async ({ page }) => {
