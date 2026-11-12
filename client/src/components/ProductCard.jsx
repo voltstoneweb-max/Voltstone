@@ -30,7 +30,9 @@ export default function ProductCard({ p }) {
           {cop(p.price)} {hasPrice && <small>IVA incluido</small>}
         </p>
         <div className="size-row" aria-label="Tallas">
-          {p.sizes.length ? p.sizes.map((s) => <span key={s}>{s}</span>) : <span>Tallas por confirmar</span>}
+          {p.variants?.length
+            ? p.variants.map((v) => <span key={v.size} title={v.stock === 0 ? 'Agotada' : `${v.stock} disponibles`} style={v.stock === 0 ? { textDecoration: 'line-through', opacity: 0.5 } : undefined}>{v.size}</span>)
+            : <span>Tallas por confirmar</span>}
         </div>
         <p className={`stock-note ${out ? 'out' : low ? 'low' : ''}`}>
           {p.stock == null ? 'Stock por confirmar' : out ? 'Agotado por ahora' : low ? `Últimas ${p.stock} unidades` : `${p.stock} unidades disponibles`}

@@ -7,7 +7,7 @@ import ErrorBox from '../components/ErrorBox.jsx';
 import AdminLogin from './AdminLogin.jsx';
 import AdminOrders from './AdminOrders.jsx';
 
-const EMPTY = { sku: '', name: '', category: 'Ropa superior', genders: 'ambos', materials: '', price: '', stock: '', sizes: '', colors: '', description: '', imageUrl: '' };
+const EMPTY = { sku: '', name: '', category: 'Ropa superior', genders: 'ambos', materials: '', price: '', variants: '', colors: '', description: '', imageUrl: '' };
 const CATEGORIES = ['Ropa superior', 'Pantalones', 'Shorts y faldas', 'Vestidos y monos', 'Ropa deportiva', 'Abrigos y exteriores', 'Ropa interior y base layers', 'Accesorios textiles'];
 const REASON = { producto: 'Producto', pedido: 'Pedido', devolucion: 'Devolución', garantia: 'Garantía', pagos: 'Pagos', pqrs: 'PQRS', otro: 'Otro' };
 const list = (s) => s.split(',').map((x) => x.trim()).filter(Boolean);
@@ -45,8 +45,7 @@ function Products() {
     genders: form.genders === 'ambos' ? ['hombre', 'mujer'] : [form.genders],
     materials: list(form.materials),
     price: numOrNull(form.price),
-    stock: numOrNull(form.stock),
-    sizes: list(form.sizes),
+    variants: form.variants, // "S:6, M:10, L:8, XL:3"; el servidor lo valida y deriva las tallas
     colors: list(form.colors),
     description: form.description,
     imageUrl: form.imageUrl
@@ -65,8 +64,7 @@ function Products() {
     setEditId(p._id);
     setForm({
       sku: p.sku, name: p.name, category: p.category, genders: p.genders.length > 1 ? 'ambos' : p.genders[0],
-      materials: p.materials.join(', '), price: p.price == null ? '' : String(p.price), stock: p.stock == null ? '' : String(p.stock),
-      sizes: p.sizes.join(', '), colors: p.colors.join(', '), description: p.description, imageUrl: p.imageUrl
+      materials: p.materials.join(', '), price: p.price == null ? '' : String(p.price), variants: (p.variants || []).map((v) => `${v.size}:${v.stock}`).join(', '), colors: p.colors.join(', '), description: p.description, imageUrl: p.imageUrl
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -87,9 +85,8 @@ function Products() {
           <label className="field"><span>Género</span><select value={form.genders} onChange={set('genders')}><option value="ambos">Hombre y mujer</option><option value="hombre">Solo hombre</option><option value="mujer">Solo mujer</option></select></label>
           <label className="field"><span>Código (vacío = automático)</span><input value={form.sku} onChange={set('sku')} /></label>
           <label className="field"><span>Precio COP entero (vacío = por confirmar)</span><input type="number" min="0" step="1" value={form.price} onChange={set('price')} /></label>
-          <label className="field"><span>Stock (vacío = por confirmar)</span><input type="number" min="0" step="1" value={form.stock} onChange={set('stock')} /></label>
+          <label className="field"><span>Stock por talla (ej. S:6, M:10, L:8, XL:3)</span><input value={form.variants} onChange={set('variants')} placeholder="S:6, M:10, L:8, XL:3" /></label>
           <label className="field"><span>Materiales (separados por coma)</span><input value={form.materials} onChange={set('materials')} /></label>
-          <label className="field"><span>Tallas (separadas por coma)</span><input value={form.sizes} onChange={set('sizes')} /></label>
           <label className="field"><span>Colores (separados por coma)</span><input value={form.colors} onChange={set('colors')} /></label>
           <label className="field"><span>Enlace de la foto (opcional)</span><input value={form.imageUrl} onChange={set('imageUrl')} /></label>
         </div>

@@ -9,7 +9,7 @@ export const CATALOG = [
   {"sku": "SUP-004", "name": "Camiseta deportiva", "category": "Ropa superior", "genders": ["hombre", "mujer"], "materials": ["Poliéster técnico", "Nylon", "Elastano"], "order": 4, "price": 89900},
   {"sku": "SUP-005", "name": "Camiseta dry-fit", "category": "Ropa superior", "genders": ["hombre", "mujer"], "materials": ["Poliéster técnico", "Nylon técnico"], "order": 5, "price": 89900},
   {"sku": "SUP-006", "name": "Camiseta mesh", "category": "Ropa superior", "genders": ["hombre", "mujer"], "materials": ["Poliéster mesh", "Nylon mesh"], "order": 6, "price": 94900, "imageUrl": "img/productos/camiseta-mesh-azul.jpg", "colors": ["Azul rey"]},
-  {"sku": "SUP-007", "name": "Camiseta polo", "category": "Ropa superior", "genders": ["hombre", "mujer"], "materials": ["Piqué", "Algodón", "Algodón-elastano"], "order": 7, "price": 119900},
+  {"sku": "SUP-007", "name": "Polo Piqué", "category": "Ropa superior", "genders": ["hombre", "mujer"], "materials": ["Piqué", "Algodón", "Algodón-elastano"], "order": 7, "price": 119900},
   {"sku": "SUP-008", "name": "Polo performance", "category": "Ropa superior", "genders": ["hombre", "mujer"], "materials": ["Poliéster técnico", "Nylon", "Elastano"], "order": 8, "price": 129900},
   {"sku": "SUP-009", "name": "Henley", "category": "Ropa superior", "genders": ["hombre", "mujer"], "materials": ["Algodón ligero", "Modal", "Lino"], "order": 9, "price": 99900},
   {"sku": "SUP-010", "name": "Camisa básica", "category": "Ropa superior", "genders": ["hombre", "mujer"], "materials": ["Algodón", "Popelina"], "order": 10, "price": 129900},
@@ -42,7 +42,7 @@ export const CATALOG = [
   {"sku": "SUP-037", "name": "Chaqueta bomber", "category": "Ropa superior", "genders": ["hombre", "mujer"], "materials": ["Nylon", "Poliéster", "Algodón"], "order": 37, "price": 249900},
   {"sku": "SUP-038", "name": "Chaqueta denim", "category": "Ropa superior", "genders": ["hombre", "mujer"], "materials": ["Denim"], "order": 38, "price": 239900},
   {"sku": "SUP-039", "name": "Chaqueta varsity", "category": "Ropa superior", "genders": ["hombre", "mujer"], "materials": ["Algodón", "Poliéster"], "order": 39, "price": 269900},
-  {"sku": "SUP-040", "name": "Chaqueta coach", "category": "Ropa superior", "genders": ["hombre", "mujer"], "materials": ["Nylon ligero"], "order": 40, "price": 199900},
+  {"sku": "SUP-040", "name": "Chaqueta coach", "category": "Ropa superior", "genders": ["hombre", "mujer"], "materials": ["Nylon ligero"], "order": 40, "price": 219900},
   {"sku": "SUP-041", "name": "Chaqueta utility", "category": "Ropa superior", "genders": ["hombre", "mujer"], "materials": ["Nylon ripstop", "Algodón"], "order": 41, "price": 259900},
   {"sku": "SUP-042", "name": "Chaqueta techwear", "category": "Ropa superior", "genders": ["hombre", "mujer"], "materials": ["Nylon técnico", "Poliéster técnico"], "order": 42, "price": 299900},
   {"sku": "SUP-043", "name": "Blazer", "category": "Ropa superior", "genders": ["hombre", "mujer"], "materials": ["Lino", "Algodón", "Lana ligera"], "order": 43, "price": 329900},
@@ -58,7 +58,7 @@ export const CATALOG = [
   {"sku": "PAN-007", "name": "Pantalón chino", "category": "Pantalones", "genders": ["hombre", "mujer"], "materials": ["Algodón", "Algodón-elastano"], "order": 53, "price": 159900},
   {"sku": "PAN-008", "name": "Pantalón recto", "category": "Pantalones", "genders": ["hombre", "mujer"], "materials": ["Lino", "Algodón", "Lyocell"], "order": 54, "price": 169900},
   {"sku": "PAN-009", "name": "Pantalón wide-leg", "category": "Pantalones", "genders": ["hombre", "mujer"], "materials": ["Lino", "Lyocell", "Viscosa"], "order": 55, "price": 179900},
-  {"sku": "PAN-010", "name": "Pantalón cargo", "category": "Pantalones", "genders": ["hombre", "mujer"], "materials": ["Ripstop", "Algodón", "Nylon"], "order": 56, "price": 189900, "imageUrl": "img/productos/pantalon-cargo-verde.jpg", "colors": ["Verde olivo"]},
+  {"sku": "PAN-010", "name": "Pantalón cargo", "category": "Pantalones", "genders": ["hombre", "mujer"], "materials": ["Ripstop", "Algodón", "Nylon"], "order": 56, "price": 169900, "imageUrl": "img/productos/pantalon-cargo-verde.jpg", "colors": ["Verde olivo"]},
   {"sku": "PAN-011", "name": "Cargo techwear", "category": "Pantalones", "genders": ["hombre", "mujer"], "materials": ["Nylon ripstop", "Poliéster técnico"], "order": 57, "price": 229900},
   {"sku": "PAN-012", "name": "Pantalón utility", "category": "Pantalones", "genders": ["hombre", "mujer"], "materials": ["Ripstop", "Canvas ligero"], "order": 58, "price": 199900},
   {"sku": "PAN-013", "name": "Pantalón jogger", "category": "Pantalones", "genders": ["hombre", "mujer"], "materials": ["Algodón", "Poliéster", "Jersey"], "order": 59, "price": 139900},
@@ -127,7 +127,7 @@ export const CATALOG = [
   {"sku": "ABR-002", "name": "Varsity", "category": "Abrigos y exteriores", "genders": ["hombre", "mujer"], "materials": ["Lana/poliéster"], "order": 122, "price": 269900},
   {"sku": "ABR-003", "name": "Harrington", "category": "Abrigos y exteriores", "genders": ["hombre", "mujer"], "materials": ["Algodón", "Nylon"], "order": 123, "price": 229900},
   {"sku": "ABR-004", "name": "Trucker jacket", "category": "Abrigos y exteriores", "genders": ["hombre", "mujer"], "materials": ["Denim"], "order": 124, "price": 239900},
-  {"sku": "ABR-005", "name": "Coach jacket", "category": "Abrigos y exteriores", "genders": ["hombre", "mujer"], "materials": ["Nylon"], "order": 125, "price": 199900},
+  {"sku": "ABR-005", "name": "Coach jacket", "category": "Abrigos y exteriores", "genders": ["hombre", "mujer"], "materials": ["Nylon"], "order": 125, "price": 219900},
   {"sku": "ABR-006", "name": "Windbreaker", "category": "Abrigos y exteriores", "genders": ["hombre", "mujer"], "materials": ["Nylon"], "order": 126, "price": 199900},
   {"sku": "ABR-007", "name": "Anorak", "category": "Abrigos y exteriores", "genders": ["hombre", "mujer"], "materials": ["Nylon ripstop"], "order": 127, "price": 229900},
   {"sku": "ABR-008", "name": "Parka ligera", "category": "Abrigos y exteriores", "genders": ["hombre", "mujer"], "materials": ["Nylon"], "order": 128, "price": 279900},
@@ -168,5 +168,6 @@ export const CATALOG = [
   {"sku": "ACC-014", "name": "Tote bag", "category": "Accesorios textiles", "genders": ["hombre", "mujer"], "materials": ["Algodón", "Canvas"], "order": 163, "price": 79900},
   {"sku": "ACC-015", "name": "Mochila urbana", "category": "Accesorios textiles", "genders": ["hombre", "mujer"], "materials": ["Nylon", "Poliéster"], "order": 164, "price": 189900},
   {"sku": "ACC-016", "name": "Riñonera", "category": "Accesorios textiles", "genders": ["hombre", "mujer"], "materials": ["Nylon ripstop"], "order": 165, "price": 99900},
-  {"sku": "ACC-017", "name": "Bolso crossbody", "category": "Accesorios textiles", "genders": ["hombre", "mujer"], "materials": ["Nylon", "Poliéster"], "order": 166, "price": 119900}
+  {"sku": "ACC-017", "name": "Bolso crossbody", "category": "Accesorios textiles", "genders": ["hombre", "mujer"], "materials": ["Nylon", "Poliéster"], "order": 166, "price": 119900},
+  {"sku": "PAN-028", "name": "Pantalón Cargo Utility", "category": "Pantalones", "genders": ["hombre", "mujer"], "materials": ["Ripstop", "Algodón", "Nylon"], "order": 167}
 ];

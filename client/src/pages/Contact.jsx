@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { request } from '../api.js';
 
 const REASONS = [
@@ -20,8 +20,8 @@ const HINTS = {
   producto: 'También puedes preguntar desde el detalle de cada prenda en el Catálogo.'
 };
 const NEEDS_ORDER = ['pedido', 'devolucion', 'garantia', 'pagos'];
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const EMPTY = { name: '', email: '', orderNumber: '', productRef: '', message: '' };
+const EMAIL_RE = /^[^\s@?]+@[^\s@?]+\.[^\s@?]+$/;
+const EMPTY = { name: '', email: '', orderNumber: '', productRef: '', message: '', acceptDataPolicy: false };
 
 export default function Contact() {
   const [params] = useSearchParams();
@@ -31,7 +31,7 @@ export default function Contact() {
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState({ type: 'idle', msg: '' });
   const [ticket, setTicket] = useState('');
-  const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
+  const set = (k) => (e) => setForm({ ...form, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value });
 
   /** Valida en el navegador (respuesta inmediata); el servidor vuelve a validar por seguridad. */
   function validate() {
@@ -39,6 +39,7 @@ export default function Contact() {
     if (form.name.trim().length < 2) e.name = 'Escribe tu nombre.';
     if (!EMAIL_RE.test(form.email)) e.email = 'Escribe un correo válido, por ejemplo nombre@correo.com.';
     if (form.message.trim().length < 10) e.message = 'Cuéntanos un poco más (mínimo 10 caracteres).';
+    if (!form.acceptDataPolicy) e.acceptDataPolicy = 'Debes autorizar el tratamiento de tus datos para enviar el formulario.';
     return e;
   }
 
@@ -49,7 +50,7 @@ export default function Contact() {
     if (Object.keys(found).length) return;
     setStatus({ type: 'loading', msg: '' });
     try {
-      const body = { reason, name: form.name, email: form.email, message: form.message };
+      const body = { reason, name: form.name, email: form.email, message: form.message, acceptDataPolicy: true };
       if (NEEDS_ORDER.includes(reason)) body.orderNumber = form.orderNumber;
       if (reason === 'producto') body.productRef = form.productRef;
       const res = await request('/contact', { method: 'POST', body });
@@ -100,6 +101,11 @@ export default function Contact() {
         {field('name', 'Nombre')}
         {field('email', 'Correo', { type: 'email' })}
         {field('message', 'Mensaje', { area: true })}
+        <label className="check">
+          <input type="checkbox" checked={form.acceptDataPolicy} onChange={set('acceptDataPolicy')} aria-invalid={!!errors.acceptDataPolicy} />{' '}
+          <span>Autorizo el tratamiento de mis datos personales para responder esta solicitud, según la <Link className="link" to="/info/privacidad" target="_blank">política de privacidad</Link>.</span>
+        </label>
+        {errors.acceptDataPolicy && <small className="field-error">{errors.acceptDataPolicy}</small>}
         <button className="btn" disabled={status.type === 'loading'}>{status.type === 'loading' ? 'Enviando…' : 'Enviar'}</button>
       </form>
       {status.type === 'error' && <div className="alert alert-error" role="alert">{status.msg}</div>}

@@ -7,7 +7,7 @@ import { requireAdmin } from '../middleware/auth.js';
 import { asyncHandler, HttpError } from '../middleware/errors.js';
 
 const router = Router();
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const EMAIL_RE = /^[^\s@?]+@[^\s@?]+\.[^\s@?]+$/; // sin espacios ni signos de pregunta
 
 const askLimiter = rateLimit({
   windowMs: 10 * 60 * 1000,
@@ -34,14 +34,15 @@ router.post(
   '/',
   askLimiter,
   asyncHandler(async (req, res) => {
-    const { productId, name, email, question } = req.body || {};
+    const { productId, name, email, question, acceptDataPolicy } = req.body || {};
     if ([productId, name, email, question].some((v) => typeof v !== 'string')) throw new HttpError(400, 'Completa todos los campos.');
     if (!mongoose.isValidObjectId(productId)) throw new HttpError(400, 'El producto no es válido.');
     if (name.trim().length < 2) throw new HttpError(400, 'Escribe tu nombre.');
     if (!EMAIL_RE.test(email)) throw new HttpError(400, 'El correo no tiene un formato válido.');
     if (question.trim().length < 10) throw new HttpError(400, 'Escribe tu pregunta con un poco más de detalle (mínimo 10 caracteres).');
+    if (acceptDataPolicy !== true) throw new HttpError(400, 'Debes autorizar el tratamiento de tus datos personales para enviar tu pregunta.');
     if (!(await Product.exists({ _id: productId, active: true }))) throw new HttpError(404, 'El producto no existe.');
-    await Question.create({ product: productId, name, email, question });
+    await Question.create({ product: productId, name, email, question, dataAuthorizedAt: new Date() });
     res.status(201).json({ ok: true });
   })
 );

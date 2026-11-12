@@ -34,12 +34,13 @@ export default function ProductPage() {
   const photos = p.images?.length ? p.images : p.imageUrl ? [p.imageUrl] : [];
   const out = p.stock === 0;
   const noPrice = p.price == null;
-  const canBuy = !out && !noPrice && p.stock != null && p.sizes.length > 0;
-  const maxQty = Math.min(10, p.stock ?? 1);
+  const canBuy = !out && !noPrice && p.stock != null && p.variants?.length > 0;
+  const sizeStock = (s) => p.variants?.find((v) => v.size === s)?.stock ?? 0;
+  const maxQty = size ? Math.min(10, sizeStock(size)) : 1;
 
   function add() {
     if (!size) { setHint(true); return; }
-    addItem(p, size, qty);
+    addItem(p, size, Math.min(qty, maxQty));
     openBag('bag');
   }
 
@@ -86,8 +87,8 @@ export default function ProductPage() {
               <Link className="link" to="/info/tallas">Guía de tallas</Link>
             </div>
             <div className="size-pick" role="group" aria-label="Talla">
-              {p.sizes.length ? p.sizes.map((s) => (
-                <button key={s} className={size === s ? 'on' : ''} aria-pressed={size === s} onClick={() => { setSize(s); setHint(false); }} disabled={out}>{s}</button>
+              {p.variants?.length ? p.variants.map((v) => (
+                <button key={v.size} className={size === v.size ? 'on' : ''} aria-pressed={size === v.size} onClick={() => { setSize(v.size); setQty(1); setHint(false); }} disabled={v.stock === 0} title={v.stock === 0 ? 'Agotada' : undefined}>{v.size}</button>
               )) : <span className="muted">Tallas por confirmar</span>}
             </div>
             {hint && <p className="field-error" role="alert">Elige una talla para agregar la prenda a tu bolsa.</p>}
@@ -103,9 +104,14 @@ export default function ProductPage() {
               {out ? 'Agotado' : noPrice ? 'Precio por confirmar' : !canBuy ? 'No disponible' : size ? 'Agregar a la bolsa' : 'Selecciona una talla'}
             </button>
           </div>
-          <p className={`stock-note ${out ? 'out' : p.stock != null && p.stock <= 5 ? 'low' : ''}`}>
-            {p.stock == null ? 'Stock por confirmar' : out ? 'Agotado por ahora' : p.stock <= 5 ? `Últimas ${p.stock} unidades` : `${p.stock} unidades disponibles`}
-          </p>
+          {(() => {
+            const n = size ? sizeStock(size) : p.stock; // con talla elegida se muestra el stock de ESA talla
+            return (
+              <p className={`stock-note ${out || n === 0 ? 'out' : n != null && n <= 5 ? 'low' : ''}`}>
+                {p.stock == null ? 'Stock por confirmar' : out || n === 0 ? 'Agotado por ahora' : n <= 5 ? `Últimas ${n} unidades${size ? ` en talla ${size}` : ''}` : `${n} unidades disponibles${size ? ` en talla ${size}` : ''}`}
+              </p>
+            );
+          })()}
 
           <p className="pp-delivery">
             <strong>Entrega estimada:</strong> Cali 1 día hábil · ciudades principales 2 a 4 · resto del país 3 a 8 días hábiles. Envío fijo de $10.000 ·{' '}

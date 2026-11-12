@@ -6,7 +6,7 @@ import { requireAdmin } from '../middleware/auth.js';
 import { asyncHandler, HttpError } from '../middleware/errors.js';
 
 const router = Router();
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const EMAIL_RE = /^[^\s@?]+@[^\s@?]+\.[^\s@?]+$/; // sin espacios ni signos de pregunta
 const LABELS = {
   producto: 'Pregunta sobre un producto',
   pedido: 'Estado de mi pedido',
@@ -28,19 +28,20 @@ router.post(
   '/',
   contactLimiter,
   asyncHandler(async (req, res) => {
-    const { name, email, message, reason = 'otro', orderNumber = '', productRef = '' } = req.body || {};
+    const { name, email, message, reason = 'otro', orderNumber = '', productRef = '', acceptDataPolicy } = req.body || {};
     if (!name || !email || !message) throw new HttpError(400, 'Completa tu nombre, correo y mensaje.');
     // Solo texto: rechaza objetos (inyección NoSQL) antes de tocar la base de datos
     if ([name, email, message, reason, orderNumber, productRef].some((v) => typeof v !== 'string')) throw new HttpError(400, 'Los campos deben ser texto.');
     if (!EMAIL_RE.test(email)) throw new HttpError(400, 'El correo no tiene un formato válido.');
     if (!REASONS.includes(reason)) throw new HttpError(400, 'Elige un motivo de contacto válido.');
+    if (acceptDataPolicy !== true) throw new HttpError(400, 'Debes autorizar el tratamiento de tus datos personales para enviar el formulario.');
 
     // Número de caso para seguimiento (se reintenta si, por azar, ya existe)
     let saved;
     for (let i = 0; i < 3 && !saved; i++) {
       const ticket = `VS-${new Date().getFullYear()}-${randomInt(100000, 1000000)}`;
       try {
-        saved = await Message.create({ ticket, reason, orderNumber, productRef, name, email, subject: LABELS[reason], message });
+        saved = await Message.create({ ticket, reason, orderNumber, productRef, name, email, subject: LABELS[reason], message, dataAuthorizedAt: new Date() });
       } catch (err) {
         if (err.code !== 11000) throw err;
       }

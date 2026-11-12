@@ -1,15 +1,19 @@
 import mongoose from 'mongoose';
 
-// Mismos estados definidos para el pedido en toda la documentación
-export const ORDER_STATUSES = ['Pendiente', 'Pagado', 'En preparación', 'Empacado', 'Enviado', 'Entregado', 'Cancelado'];
-export const PAYMENT_METHODS = ['Tarjeta', 'PSE', 'Contra entrega'];
+// Estados del pedido, en orden. Solo se avanza hacia la derecha; "Cancelado" es aparte.
+export const ORDER_STATUSES = ['Pago confirmado', 'En preparación', 'Empacado', 'Entregado a la transportadora', 'En camino', 'Entregado', 'Cancelado'];
+export const FLOW = ORDER_STATUSES.slice(0, 6); // sin "Cancelado"
+// Se puede cancelar solo ANTES del despacho (antes de entregarlo a la transportadora)
+export const CANCELABLE = ['Pago confirmado', 'En preparación', 'Empacado'];
+export const PAYMENT_METHODS = ['Tarjeta', 'PSE'];
+export const TERMS_VERSION = '2026-11'; // sube este valor cuando cambien los términos
 
-/** Pedido. El código (ej. VOLT-1001) es el número que el cliente usa para rastrearlo. */
+/** Pedido. El código (ej. VOLT-1001) es el número que el cliente usa para rastrearlo (junto con su correo). */
 const orderSchema = new mongoose.Schema(
   {
     code: { type: String, required: true, unique: true, trim: true, uppercase: true },
-    status: { type: String, enum: ORDER_STATUSES, default: 'Pendiente' },
-    customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer' }, // solo si compró con sesión iniciada
+    status: { type: String, enum: ORDER_STATUSES, default: 'Pago confirmado' },
+    customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer' }, // el pedido siempre pertenece a una cuenta
     customerName: { type: String, required: true, trim: true, maxlength: 80 },
     customerEmail: { type: String, default: '', trim: true, lowercase: true, maxlength: 120 },
     customerPhone: { type: String, default: '', trim: true, maxlength: 20 },
@@ -29,6 +33,9 @@ const orderSchema = new mongoose.Schema(
     shipping: { type: Number, default: 10000 },
     total: { type: Number, required: true, min: 0 },
     estimatedDelivery: { type: Date },
+    acceptedTermsAt: { type: Date }, // cuándo aceptó los términos al pagar
+    termsVersion: { type: String, default: '' },
+    archivedAt: { type: Date, default: null }, // "borrar" un pedido lo archiva; no se elimina
     history: [{ status: { type: String, enum: ORDER_STATUSES }, at: { type: Date, default: Date.now } }]
   },
   { timestamps: true }

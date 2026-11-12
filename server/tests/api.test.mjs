@@ -96,7 +96,19 @@ test('preguntas: pública solo lista respondidas y valida la entrada', async () 
 });
 
 test('contacto: rechaza un motivo inventado', async () => {
-  const res = await call('/contact', { method: 'POST', body: { name: 'Ana', email: 'ana@correo.co', message: 'Mensaje de prueba largo', reason: 'hackeo' } });
+  const res = await call('/contact', { method: 'POST', body: { name: 'Ana', email: 'ana@correo.co', message: 'Mensaje de prueba largo', reason: 'hackeo', acceptDataPolicy: true } });
+  assert.ok([400, 429].includes(res.status));
+});
+
+test('contacto y preguntas exigen autorizar el tratamiento de datos', async () => {
+  const c = await call('/contact', { method: 'POST', body: { name: 'Ana', email: 'ana@correo.co', message: 'Mensaje de prueba largo', reason: 'otro' } });
+  assert.ok([400, 429].includes(c.status));
+  const q = await call('/questions', { method: 'POST', body: { productId: '000000000000000000000000', name: 'Ana', email: 'ana@correo.co', question: 'Pregunta de prueba larga' } });
+  assert.ok([400, 429].includes(q.status));
+});
+
+test('un correo con signo de pregunta se rechaza', async () => {
+  const res = await call('/contact', { method: 'POST', body: { name: 'Ana', email: 'ana?@correo.co', message: 'Mensaje de prueba largo', reason: 'otro', acceptDataPolicy: true } });
   assert.ok([400, 429].includes(res.status));
 });
 
@@ -112,19 +124,32 @@ test('login real + panel + cierre (solo si defines TEST_ADMIN_*)', { skip: !(ema
 
 
 // ---------- Fase 2: rastreo de pedidos y cuentas de cliente ----------
-test('el rastreo devuelve el estado de un pedido de ejemplo sin datos personales', async () => {
-  const res = await call('/orders/track/VOLT-1001');
-  assert.equal(res.status, 200, 'Pedido de ejemplo no encontrado: ¿corriste npm run seed?');
+const STATUSES = ['Pago confirmado', 'En preparación', 'Empacado', 'Entregado a la transportadora', 'En camino', 'Entregado', 'Cancelado'];
+const track = (code, email) => call('/orders/track', { method: 'POST', body: { code, email } });
+
+test('el rastreo pide número + correo y no muestra datos personales', async () => {
+  const res = await track('VOLT-1001', 'camila.demo@example.com');
+  assert.ok([200, 429].includes(res.status), `llegó ${res.status}: ¿corriste npm run seed?`);
+  if (res.status !== 200) return;
   const order = await res.json();
   assert.equal(order.code, 'VOLT-1001');
-  assert.ok(['Pendiente', 'Pagado', 'En preparación', 'Empacado', 'Enviado', 'Entregado', 'Cancelado'].includes(order.status));
+  assert.ok(STATUSES.includes(order.status));
   assert.ok(Array.isArray(order.items) && order.items.length > 0);
-  for (const k of ['customerEmail', 'customerName']) assert.ok(!(k in order), `el rastreo público no debe mostrar ${k}`);
+  for (const k of ['customerEmail', 'customerName', 'customerPhone', 'address']) assert.ok(!(k in order), `el rastreo público no debe mostrar ${k}`);
 });
 
-test('el rastreo rechaza números mal escritos y pedidos que no existen', async () => {
-  assert.equal((await call('/orders/track/ABC-1')).status, 400);
-  assert.equal((await call('/orders/track/VOLT-999999')).status, 404);
+test('el rastreo rechaza correo equivocado, números mal escritos y pedidos que no existen', async () => {
+  const ok = (r, list) => assert.ok(list.includes(r.status), `llegó ${r.status}`);
+  ok(await track('VOLT-1001', 'otra.persona@example.com'), [404, 429]); // número real, correo que no es
+  ok(await track('ABC-1', 'a@a.co'), [400, 429]);
+  ok(await track('VOLT-999999', 'a@a.co'), [404, 429]);
+  ok(await track('VOLT-1001', ''), [400, 429]);
+  assert.ok([404, 405].includes((await call('/orders/track/VOLT-1001')).status), 'el rastreo por GET con solo el número ya no existe');
+});
+
+test('la confirmación del pedido exige sesión de cliente', async () => {
+  assert.equal((await call('/orders/mine/VOLT-1001')).status, 401);
+  assert.equal((await call('/orders/quote', { method: 'POST', body: { items: [] } })).status, 401);
 });
 
 test('rutas de pedidos del administrador sin token devuelven 401', async () => {
@@ -189,7 +214,7 @@ test('comprar rechaza datos incompletos, bolsa vacía y términos sin aceptar', 
 });
 
 test('comprar una prenda inexistente o con cantidad absurda se rechaza sin tocar el stock', async () => {
-  const base = { name: 'Prueba', email: 'prueba@example.com', phone: '3001234567', city: 'Cali', address: 'Calle 1 # 2-3', paymentMethod: 'Contra entrega', acceptTerms: true };
+  const base = { name: 'Prueba', email: 'prueba@example.com', phone: '3001234567', city: 'Cali', address: 'Calle 1 # 2-3', paymentMethod: 'Tarjeta', acceptTerms: true };
   rejected(await call('/orders', { method: 'POST', body: { ...base, items: [{ productId: '000000000000000000000000', size: 'M', qty: 1 }] } }));
   const list = await (await call('/products')).json();
   rejected(await call('/orders', { method: 'POST', body: { ...base, items: [{ productId: list[0]._id, size: 'M', qty: 999 }] } }));
@@ -208,21 +233,28 @@ test('comprar exige una cuenta: sin iniciar sesión devuelve 401', async () => {
 // Compra completa con una cuenta de prueba: crea la cuenta, compra, descuenta stock y rastrea. Solo si lo pides (TEST_BUY=1)
 test('compra completa: crea el pedido, descuenta el stock y se puede rastrear', { skip: process.env.TEST_BUY !== '1' }, async () => {
   const list = await (await call('/products')).json();
-  const p = list.find((x) => x.price != null && x.stock >= 3 && x.sizes.length);
+  const p = list.find((x) => x.price != null && x.variants?.some((v) => v.stock >= 3));
   assert.ok(p, 'No hay una prenda con stock suficiente: corre npm run seed');
+  const v = p.variants.find((x) => x.stock >= 3);
   const email = `prueba+${Date.now()}@example.com`;
   const reg = await call('/customers/register', { method: 'POST', body: { name: 'Prueba Auto', email, password: 'clave-larga-123', acceptTerms: true, acceptDataPolicy: true } });
   assert.equal(reg.status, 201);
   const { token } = await reg.json();
-  const res = await call('/orders', { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: { name: 'Prueba Auto', email, phone: '3001234567', city: 'Cali', address: 'Calle 1 # 2-3', paymentMethod: 'Tarjeta', acceptTerms: true, items: [{ productId: p._id, size: p.sizes[0], qty: 1 }] } });
+  const res = await call('/orders', { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: { name: 'Prueba Auto', email, phone: '3001234567', city: 'Cali', address: 'Calle 1 # 2-3', paymentMethod: 'Tarjeta', acceptTerms: true, expectedTotal: p.price + 10000, items: [{ productId: p._id, size: v.size, qty: 1 }] } });
   assert.equal(res.status, 201);
   const { code, status, total } = await res.json();
   assert.match(code, /^VOLT-\d+$/);
-  assert.equal(status, 'Pagado');
+  assert.equal(status, 'Pago confirmado');
   assert.equal(total, p.price + 10000);
   const after = await (await call(`/products/${p._id}`)).json();
+  assert.equal(after.variants.find((x) => x.size === v.size).stock, v.stock - 1, 'solo baja el stock de la talla comprada');
   assert.equal(after.stock, p.stock - 1);
-  assert.equal((await call(`/orders/track/${code}`)).status, 200);
+  // La confirmación se carga con la sesión del cliente; el rastreo público pide número + correo
+  assert.equal((await call(`/orders/mine/${code}`, { headers: { Authorization: `Bearer ${token}` } })).status, 200);
+  assert.equal((await track(code, email)).status, 200);
+  // Un total que ya no es el real se rechaza sin cobrar ni descontar
+  const stale = await call('/orders', { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: { name: 'Prueba Auto', email, phone: '3001234567', city: 'Cali', address: 'Calle 1 # 2-3', paymentMethod: 'Tarjeta', acceptTerms: true, expectedTotal: 1, items: [{ productId: p._id, size: v.size, qty: 1 }] } });
+  assert.equal(stale.status, 409);
   const mine = await call('/orders/mine', { headers: { Authorization: `Bearer ${token}` } });
   assert.equal(mine.status, 200);
   assert.ok((await mine.json()).some((o) => o.code === code), 'el pedido debe aparecer en Mis pedidos');

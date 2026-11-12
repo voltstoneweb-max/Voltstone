@@ -77,7 +77,7 @@ export default function Footer() {
             </form>
           )}
           <h4 style={{ marginTop: '1.4rem' }}>Medios de pago</h4>
-          <div className="pay"><span>Tarjeta</span><span>PSE</span><span>Contra entrega</span></div>
+          <div className="pay"><span>Tarjeta</span><span>PSE</span></div>
         </div>
       </div>
 

@@ -8,7 +8,8 @@ const questionSchema = new mongoose.Schema(
     email: { type: String, required: true, trim: true, lowercase: true, maxlength: 120 }, // nunca se muestra en público
     question: { type: String, required: true, trim: true, maxlength: 300 },
     answer: { type: String, default: '', maxlength: 600 }, // vacío = sin responder (no se publica)
-    answeredAt: { type: Date, default: null }
+    answeredAt: { type: Date, default: null },
+    dataAuthorizedAt: { type: Date } // cuándo autorizó el tratamiento de sus datos al preguntar
   },
   { timestamps: true }
 );

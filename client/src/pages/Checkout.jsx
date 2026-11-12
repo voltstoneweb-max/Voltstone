@@ -8,11 +8,12 @@ import ErrorBox from '../components/ErrorBox.jsx';
 
 /** Pago: datos de entrega, medio de pago (simulado) y resumen. El servidor recalcula precios y stock. */
 export default function Checkout() {
-  const { items, subtotal, clear } = useCart();
+  const { items, subtotal, clear, syncPrices } = useCart();
   const go = useNavigate();
   const user = customer.get();
   const { data: ship } = useApi(() => request('/orders/shipping'));
   const [form, setForm] = useState({ name: user?.name || '', email: user?.email || '', phone: '', city: '', address: '', notes: '', paymentMethod: 'Tarjeta', acceptTerms: false });
+  const [priceNotice, setPriceNotice] = useState('');
   const [status, setStatus] = useState({ type: 'idle', msg: '' });
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value });
 
@@ -56,7 +57,30 @@ export default function Checkout() {
     if (!form.acceptTerms) return miss('Debes aceptar los términos y condiciones para comprar.');
     setStatus({ type: 'loading', msg: '' });
     try {
-      const body = { ...form, items: items.map((i) => ({ productId: i.productId, size: i.size, qty: i.qty })) };
+      const lines = items.map((i) => ({ productId: i.productId, size: i.size, qty: i.qty, name: i.name }));
+
+      // 1) El servidor calcula el total REAL; si no coincide con lo que ve el cliente, no se cobra y se le explica qué cambió
+      let quote;
+      try {
+        quote = await request('/orders/quote', { method: 'POST', body: { items: lines }, asCustomer: true });
+      } catch (err) {
+        if (!customer.get()) throw err;
+        // Prenda agotada o retirada: el mensaje del servidor dice cuál es
+        setStatus({ type: 'error', msg: err.message });
+        return;
+      }
+      if (quote.total !== total) {
+        const changed = quote.items.filter((q) => { const mine = items.find((i) => i.productId === q.productId && i.size === q.size); return mine && mine.price !== q.price; });
+        syncPrices(quote.items);
+        setPriceNotice(changed.length
+          ? `Actualizamos los precios de tu bolsa: ${changed.map((c) => c.name).join(', ')}. El total ahora es ${cop(quote.total)}. Revísalo y confirma de nuevo.`
+          : `El total de tu bolsa cambió a ${cop(quote.total)}. Revísalo y confirma de nuevo.`);
+        setStatus({ type: 'idle', msg: '' });
+        return;
+      }
+
+      // 2) Se manda también el total esperado: el servidor lo vuelve a comprobar al crear el pedido
+      const body = { ...form, expectedTotal: total, items: lines };
       const { code } = await request('/orders', { method: 'POST', body, asCustomer: true });
       clear();
       go(`/pedido/${code}`);
@@ -89,13 +113,13 @@ export default function Checkout() {
 
           <h2>Medio de pago</h2>
           <div className="pay-options" role="radiogroup" aria-label="Medio de pago">
-            {(ship?.paymentMethods || ['Tarjeta', 'PSE', 'Contra entrega']).map((m) => (
+            {(ship?.paymentMethods || ['Tarjeta', 'PSE']).map((m) => (
               <label key={m} className={`pay-opt ${form.paymentMethod === m ? 'on' : ''}`}>
                 <input type="radio" name="pay" value={m} checked={form.paymentMethod === m} onChange={set('paymentMethod')} /> {m}
               </label>
             ))}
           </div>
-          <p className="muted small">Pago simulado: no pedimos ni guardamos datos de tarjeta. Con tarjeta o PSE el pedido queda Pagado; contra entrega queda Pendiente.</p>
+          <p className="muted small">Pago simulado: no pedimos ni guardamos datos de tarjeta. Con tarjeta o PSE el pedido queda en estado "Pago confirmado".</p>
 
           <label className="check"><input type="checkbox" checked={form.acceptTerms} onChange={set('acceptTerms')} /> <span>Acepto los <Link className="link" to="/info/terminos" target="_blank">términos y condiciones</Link> y la <Link className="link" to="/info/privacidad" target="_blank">política de privacidad</Link>.</span></label>
         </div>
@@ -116,6 +140,7 @@ export default function Checkout() {
           <p className="sum"><span>Envío</span><strong>{cop(fee)}</strong></p>
           <p className="sum total"><span>Total</span><strong>{cop(total)}</strong></p>
           <button className="btn" disabled={status.type === 'loading'}>{status.type === 'loading' ? 'Procesando…' : 'Confirmar pedido'}</button>
+          {priceNotice && <div className="alert alert-error" role="alert">{priceNotice}</div>}
           {status.type === 'error' && <ErrorBox message={status.msg} />}
         </aside>
       </form>

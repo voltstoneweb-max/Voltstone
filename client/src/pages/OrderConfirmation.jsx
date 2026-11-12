@@ -10,7 +10,7 @@ const fmt = (d) => new Date(d).toLocaleDateString('es-CO', { weekday: 'long', da
 /** Recibo en pantalla (sin PDF) con el número de pedido para rastrearlo. */
 export default function OrderConfirmation() {
   const { code } = useParams();
-  const { data: o, loading, error, reload } = useApi(() => request(`/orders/track/${code}`), [code]);
+  const { data: o, loading, error, reload } = useApi(() => request(`/orders/mine/${code}`, { asCustomer: true }), [code]); // con la sesión del cliente, no con el rastreo público
   if (loading) return <section className="section narrow"><Spinner label="Cargando tu recibo…" /></section>;
   if (error) return <section className="section narrow"><ErrorBox message={error} onRetry={reload} /></section>;
 
@@ -33,7 +33,7 @@ export default function OrderConfirmation() {
         <li>Envío <span>{cop(o.shipping)}</span></li>
         <li className="total">Total <span>{cop(o.total)}</span></li>
       </ul>
-      <p className="muted small">Guarda este número: con él puedes ver el estado de tu pedido en cualquier momento. El recibo se muestra solo en pantalla.</p>
+      <p className="muted small">Guarda este número: con él y el correo de tu compra puedes ver el estado de tu pedido en cualquier momento. El recibo se muestra solo en pantalla.</p>
       <div className="row">
         <Link className="btn" to={`/rastreo?codigo=${o.code.replace('VOLT-', '')}`}>Rastrear mi pedido</Link>
         <Link className="btn btn-ghost" to="/catalogo">Seguir comprando</Link>

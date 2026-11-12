@@ -7,7 +7,7 @@ import { requireCustomer } from '../middleware/auth.js';
 import { asyncHandler, HttpError } from '../middleware/errors.js';
 
 const router = Router();
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const EMAIL_RE = /^[^\s@?]+@[^\s@?]+\.[^\s@?]+$/; // sin espacios ni signos de pregunta
 const DUMMY_HASH = bcrypt.hashSync('no-es-una-clave-real', 10);
 
 const limiter = rateLimit({
@@ -32,7 +32,7 @@ router.post(
       throw new HttpError(400, 'Para crear tu cuenta debes aceptar los términos y condiciones y el tratamiento de datos personales.');
     }
     const mail = email.toLowerCase().trim();
-    if (await Customer.exists({ email: mail })) throw new HttpError(409, 'Ya existe una cuenta con ese correo. Inicia sesión.');
+    if (await Customer.exists({ email: mail })) throw new HttpError(409, 'No pudimos crear la cuenta con esos datos. Si ya tienes una, inicia sesión.');
     const now = new Date();
     const c = await Customer.create({
       name: name.trim(),

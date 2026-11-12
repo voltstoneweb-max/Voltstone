@@ -13,6 +13,7 @@ const messageSchema = new mongoose.Schema(
     email: { type: String, required: true, trim: true, lowercase: true, maxlength: 120 },
     subject: { type: String, required: true, trim: true, maxlength: 120 },
     message: { type: String, required: true, trim: true, maxlength: 2000 },
+    dataAuthorizedAt: { type: Date }, // cuándo autorizó el tratamiento de sus datos al enviar el formulario
     read: { type: Boolean, default: false }
   },
   { timestamps: true }

@@ -1,15 +1,16 @@
 import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext.jsx';
-import { customer } from '../api.js';
+import { customer, request } from '../api.js';
+import { useApi } from '../hooks/useApi.js';
 import { cop, imgSrc } from '../utils/format.js';
-
-const SHIPPING = 10000; // envío fijo (el servidor confirma el valor al pagar)
 
 /** Bolsa lateral con las pestañas "Mi bolsa" y "Mis favoritos". */
 export default function BagDrawer() {
   const { drawer, closeBag, setTab, items, favs, count, subtotal, setQty, removeItem, toggleFav } = useCart();
   const go = useNavigate();
+  const { data: ship } = useApi(() => request('/orders/shipping')); // el envío fijo vive en un solo lugar: el servidor
+  const SHIPPING = ship?.fee ?? 10000; // mientras carga se muestra el valor habitual
 
   useEffect(() => {
     if (!drawer.open) return undefined;

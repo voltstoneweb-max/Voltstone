@@ -14,22 +14,9 @@ import Order from '../models/Order.js';
 import Counter from '../models/Counter.js';
 import { CATALOG } from '../data/catalog.js';
 
-// Número repetible a partir del código de la prenda: así la variedad es la misma cada vez que se corre el seed
-const hash = (text) => {
-  let h = 2166136261;
-  for (const ch of text) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); }
-  return h >>> 0;
-};
-const SIZE_SETS = [['S', 'M', 'L', 'XL'], ['XS', 'S', 'M', 'L'], ['S', 'M', 'L'], ['XS', 'S', 'M', 'L', 'XL'], ['M', 'L', 'XL'], ['S', 'M']];
-const sizesFor = (p) => (p.category === 'Accesorios textiles' ? ['Talla única'] : SIZE_SETS[hash(p.sku + 't') % SIZE_SETS.length]);
-// Stock variado: unas pocas prendas agotadas, algunas con poco stock y el resto con existencias normales
-const stockFor = (p) => {
-  const h = hash(p.sku + 's');
-  const r = h % 100;
-  if (r < 6) return 0;
-  if (r < 22) return 1 + ((h >>> 8) % 5);
-  return 8 + ((h >>> 8) % 53);
-};
+// Stock por talla, igual para todas las prendas hasta que se ajuste desde el panel (sin números al azar)
+const STOCK_BY_SIZE = { S: 6, M: 10, L: 8, XL: 3 };
+const variantsFor = (p) => (p.category === 'Accesorios textiles' ? [{ size: 'Talla única', stock: 25 }] : Object.entries(STOCK_BY_SIZE).map(([size, stock]) => ({ size, stock })));
 
 // Galería de la página de producto: la foto principal más las fotos extra que existan para la misma prenda
 const EXTRA_PHOTOS = {
@@ -38,24 +25,24 @@ const EXTRA_PHOTOS = {
 };
 const galleryFor = (p) => (p.imageUrl ? [p.imageUrl, ...(EXTRA_PHOTOS[p.imageUrl] || [])] : []);
 
-// Catálogo maestro completo: conserva los precios del catálogo y completa tallas y stock (se ajustan desde el panel de administración)
+// Catálogo maestro completo: conserva los precios del catálogo y completa tallas y stock por talla (se ajustan desde el panel de administración)
 const products = CATALOG.map((p) => ({
   ...p,
   price: p.price ?? null,
-  sizes: p.sizes?.length ? p.sizes : sizesFor(p),
-  stock: p.stock ?? stockFor(p),
+  variants: variantsFor(p),
+  sizes: variantsFor(p).map((v) => v.size),
   colors: p.colors || [],
   description: p.description || '',
   images: galleryFor(p)
 }));
 
-// Pedidos de ejemplo para probar el rastreo (VOLT-1001, VOLT-1002 y VOLT-1003)
+// Pedidos de ejemplo para probar el rastreo (VOLT-1001, VOLT-1002 y VOLT-1003; para rastrearlos se necesita también su correo de ejemplo)
 const daysAgo = (n) => new Date(Date.now() - n * 86400000);
 const inDays = (n) => new Date(Date.now() + n * 86400000);
 const demoOrders = [
-  { code: 'VOLT-1001', status: 'Enviado', customerName: 'Camila R.', city: 'Bogotá', items: [{ name: 'Camiseta básica', size: 'M', qty: 2, price: 79900 }, { name: 'Pantalón cargo', size: 'L', qty: 1, price: 169900 }], total: 339700, estimatedDelivery: inDays(2), history: [['Pendiente', 4], ['Pagado', 4], ['En preparación', 3], ['Empacado', 2], ['Enviado', 1]] },
-  { code: 'VOLT-1002', status: 'En preparación', customerName: 'Andrés M.', city: 'Cali', items: [{ name: 'Chaqueta coach', size: 'L', qty: 1, price: 219900 }], total: 229900, estimatedDelivery: inDays(1), history: [['Pendiente', 1], ['Pagado', 1], ['En preparación', 0]] },
-  { code: 'VOLT-1003', status: 'Entregado', customerName: 'Laura P.', city: 'Medellín', items: [{ name: 'Polo piqué', size: 'S', qty: 1, price: 99900 }], total: 109900, estimatedDelivery: daysAgo(2), history: [['Pendiente', 8], ['Pagado', 8], ['En preparación', 7], ['Empacado', 6], ['Enviado', 5], ['Entregado', 2]] }
+  { code: 'VOLT-1001', status: 'En camino', customerName: 'Camila R.', customerEmail: 'camila.demo@example.com', city: 'Bogotá', paymentMethod: 'Tarjeta', items: [{ name: 'Camiseta básica', size: 'M', qty: 2, price: 69900 }, { name: 'Pantalón cargo', size: 'L', qty: 1, price: 169900 }], total: 319700, estimatedDelivery: inDays(2), history: [['Pago confirmado', 4], ['En preparación', 3], ['Empacado', 2], ['Entregado a la transportadora', 1], ['En camino', 1]] },
+  { code: 'VOLT-1002', status: 'En preparación', customerName: 'Andrés M.', customerEmail: 'andres.demo@example.com', city: 'Cali', paymentMethod: 'PSE', items: [{ name: 'Chaqueta coach', size: 'L', qty: 1, price: 219900 }], total: 229900, estimatedDelivery: inDays(1), history: [['Pago confirmado', 1], ['En preparación', 0]] },
+  { code: 'VOLT-1003', status: 'Entregado', customerName: 'Laura P.', customerEmail: 'laura.demo@example.com', city: 'Medellín', paymentMethod: 'Tarjeta', items: [{ name: 'Polo Piqué', size: 'S', qty: 1, price: 119900 }], total: 129900, estimatedDelivery: daysAgo(2), history: [['Pago confirmado', 8], ['En preparación', 7], ['Empacado', 6], ['Entregado a la transportadora', 5], ['En camino', 4], ['Entregado', 2]] }
 ].map(({ history, ...o }) => ({ ...o, shipping: 10000, history: history.map(([status, d]) => ({ status, at: daysAgo(d) })) }));
 
 try {

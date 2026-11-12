@@ -12,9 +12,9 @@ export const INFO = {
     updated: UPDATED,
     sections: [
       ['Quiénes somos', ['VOLTSTONE CALI SAS es una tienda de ropa en línea para hombre y mujer con sede en el barrio San Fernando, en Cali, Colombia. Vendemos solo por internet. Es una empresa ficticia con fines académicos: los datos comerciales y legales son simulados.']],
-      ['Uso del sitio', ['Puedes ver el catálogo y rastrear un pedido sin crear una cuenta. Para crear una cuenta debes ser mayor de edad y dar datos verdaderos. Eres responsable de guardar tu clave y de lo que se haga con tu cuenta.']],
-      ['Precios y pagos', ['Los precios están en pesos colombianos, sin decimales, con el IVA incluido. Los medios de pago son tarjeta, PSE y contra entrega. La pasarela de pago de este sitio es una simulación: no te pedimos ni guardamos datos de tarjeta.']],
-      ['Pedidos', ['Tu pedido queda confirmado cuando el pago se registra. Verás un recibo en pantalla (no enviamos PDF) y un número de pedido para rastrearlo. Los estados son: Pendiente, Pagado, En preparación, Empacado, Enviado, Entregado y Cancelado. Solo puedes cancelar antes del despacho.']],
+      ['Uso del sitio', ['Puedes ver el catálogo sin crear una cuenta. Para comprar debes iniciar sesión o crear una cuenta, y para rastrear un pedido necesitas su número y el correo con el que compraste. Para crear una cuenta debes ser mayor de edad y dar datos verdaderos. Eres responsable de guardar tu clave y de lo que se haga con tu cuenta.']],
+      ['Precios y pagos', ['Los precios están en pesos colombianos, sin decimales, con el IVA incluido. Los medios de pago son tarjeta y PSE. La pasarela de pago de este sitio es una simulación: no te pedimos ni guardamos datos de tarjeta.']],
+      ['Pedidos', ['Tu pedido queda confirmado cuando el pago se registra. Verás un recibo en pantalla (no enviamos PDF) y un número de pedido para rastrearlo. Los estados son: Pago confirmado, En preparación, Empacado, Entregado a la transportadora, En camino, Entregado y Cancelado. Los estados solo avanzan, no retroceden. Solo puedes cancelar antes del despacho, es decir, antes de que el pedido se entregue a la transportadora. Al pagar aceptas estos términos y guardamos la fecha de tu aceptación.']],
       ['Envíos, cambios y garantía', ['Se rigen por la política de envíos y por la de cambios, garantías, retracto y reversión, publicadas en este sitio. Hacen parte de estos términos.']],
       ['Contenido del sitio', ['El nombre, el logotipo, las fotos, los textos y los diseños son de VOLTSTONE. No puedes copiarlos ni usarlos sin permiso escrito.']],
       ['Cambios a estos términos', ['Podemos actualizar estos términos. Vale la versión publicada en este sitio, con su fecha de actualización.']],
@@ -27,7 +27,7 @@ export const INFO = {
     sections: [
       ['Quién es el responsable', [`VOLTSTONE CALI SAS, barrio San Fernando, Cali. Contacto para este tema: ${CONTACT}.`]],
       ['Qué datos recogemos', ['Tu nombre, correo, teléfono, ciudad y dirección de entrega, los datos de tus pedidos, los mensajes que nos envías por el formulario y tu clave, que se guarda cifrada. No guardamos datos de tarjeta.']],
-      ['Para qué los usamos', ['Para crear y administrar tu cuenta, procesar y entregar tus pedidos, avisarte del estado de tu compra, responder tus preguntas, peticiones, quejas y reclamos, y mejorar la tienda.']],
+      ['Para qué los usamos', ['Para crear y administrar tu cuenta, procesar y entregar tus pedidos, mostrarte el estado de tu compra, responder tus preguntas, peticiones, quejas y reclamos, y mejorar la tienda.']],
       ['Tu autorización', ['Al crear tu cuenta o iniciar sesión autorizas el tratamiento de tus datos para esas finalidades. Guardamos la fecha en que aceptaste. Puedes retirar tu autorización cuando quieras.']],
       ['Tus derechos', ['Puedes conocer qué datos tenemos de ti, actualizarlos o corregirlos, pedir que los borremos, retirar tu autorización y presentar un reclamo. Para hacerlo usa el formulario de contacto y elige "Petición, queja o reclamo". Respondemos en máximo 15 días hábiles.']],
       ['Con quién los compartimos', ['Solo con quienes los necesitan para atenderte: la transportadora (nombre, teléfono y dirección para entregar), la pasarela de pago y los proveedores de tecnología del sitio. No vendemos tus datos.']],
@@ -41,8 +41,8 @@ export const INFO = {
     title: 'Política de cookies',
     updated: UPDATED,
     sections: [
-      ['Qué usamos', ['Hoy no usamos cookies de publicidad ni de seguimiento de terceros. Guardamos en tu navegador solo lo necesario para mantener tu sesión abierta mientras la pestaña esté abierta.']],
-      ['Cómo controlarlo', ['Puedes borrar los datos del sitio desde la configuración de tu navegador. Si lo haces, tendrás que iniciar sesión de nuevo.']],
+      ['Qué usamos', ['Hoy no usamos cookies de publicidad ni de seguimiento de terceros. Guardamos en tu navegador solo lo necesario para que la tienda funcione: tu sesión (mientras la pestaña esté abierta) y, de forma persistente, tu bolsa de compras y tus prendas favoritas, para que no se pierdan si cierras el navegador.']],
+      ['Cómo controlarlo', ['Puedes borrar los datos del sitio desde la configuración de tu navegador. Si lo haces, tendrás que iniciar sesión de nuevo y se vaciarán tu bolsa y tus favoritos.']],
       ['Si esto cambia', ['Si algún día agregamos herramientas de medición, lo diremos aquí y te pediremos tu autorización antes de activarlas.']]
     ]
   },
@@ -63,11 +63,11 @@ export const INFO = {
     title: 'Política de envíos',
     updated: UPDATED,
     sections: [
-      ['Costo', ['En Colombia el envío tiene un valor fijo de $10.000. El envío internacional se cotiza y lo ves antes de pagar.']],
-      ['Tiempos de entrega', ['Cali y alrededores: 1 día hábil. Ciudades principales: 2 a 4 días hábiles. Ciudades intermedias: 3 a 5. Zonas remotas: 5 a 8. Internacional: 7 a 15 días. A los pueblos se les suma tiempo extra.']],
+      ['Costo', ['En Colombia el envío tiene un valor fijo de $10.000. Por ahora solo enviamos dentro de Colombia.']],
+      ['Tiempos de entrega', ['Cali y alrededores: 1 día hábil. Ciudades principales: 2 a 4 días hábiles. Ciudades intermedias: 3 a 5. Zonas remotas: 5 a 8. Los fines de semana y los festivos no cuentan como días hábiles. A los pueblos se les suma tiempo extra.']],
       ['Fecha estimada', ['La fecha estimada se calcula según la distancia y la ciudad de entrega. Si pagas antes de las 14:00 de un día hábil, tu pedido sale ese mismo día; si pagas después, sale el siguiente día hábil.']],
       ['Dirección', ['Revisa bien tu dirección. Si es incorrecta y hay que reenviar el pedido, se puede cobrar un recargo.']],
-      ['Rastreo', ['Con tu número de pedido (por ejemplo VOLT-1001) puedes ver su estado en la página Rastrear pedido.']]
+      ['Rastreo', ['Con tu número de pedido (por ejemplo VOLT-1001) y el correo con el que compraste puedes ver su estado en la página Rastrear pedido.']]
     ]
   },
   'como-comprar': {
@@ -77,8 +77,8 @@ export const INFO = {
       ['1. Elige tu prenda', ['Explora el catálogo por género o categoría, o usa la lupa. Entra a la prenda para ver sus fotos, materiales, tallas y stock.']],
       ['2. Escoge tu talla', ['Selecciona la talla y la cantidad. Si dudas, mira la guía de tallas. Hasta que elijas una talla el botón no te deja agregar.']],
       ['3. Agrega a la bolsa', ['Tu bolsa aparece a la derecha. Ahí puedes cambiar cantidades, quitar prendas y ver el total con el envío fijo de $10.000. También puedes guardar prendas en favoritos con el corazón.']],
-      ['4. Paga', ['Completa tus datos de entrega y elige tarjeta, PSE o contra entrega (el pago es una simulación). Puedes comprar con tu cuenta o como invitado.']],
-      ['5. Guarda tu número de pedido', ['Al terminar verás tu recibo en pantalla con un número como VOLT-1004. Con él puedes ver el estado en Rastrear pedido.']]
+      ['4. Paga', ['Para comprar debes iniciar sesión o crear una cuenta (tu bolsa se conserva). Completa tus datos de entrega y elige tarjeta o PSE (el pago es una simulación).']],
+      ['5. Guarda tu número de pedido', ['Al terminar verás tu recibo en pantalla con un número como VOLT-1004. Con él y el correo de tu compra puedes ver el estado en Rastrear pedido.']]
     ]
   },
   tallas: {

@@ -5,7 +5,7 @@ import ErrorBox from '../components/ErrorBox.jsx';
 import { useApi } from '../hooks/useApi.js';
 import { cop } from '../utils/format.js';
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const EMAIL_RE = /^[^\s@?]+@[^\s@?]+\.[^\s@?]+$/;
 // Se abren en otra pestaña para no perder lo que escribiste en el formulario
 const Policies = () => (
   <>

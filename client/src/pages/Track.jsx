@@ -1,35 +1,36 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { request } from '../api.js';
 import { cop } from '../utils/format.js';
 import { Spinner } from '../components/Loader.jsx';
 import ErrorBox from '../components/ErrorBox.jsx';
 
-const STEPS = ['Pendiente', 'Pagado', 'En preparación', 'Empacado', 'Enviado', 'Entregado'];
+const STEPS = ['Pago confirmado', 'En preparación', 'Empacado', 'Entregado a la transportadora', 'En camino', 'Entregado'];
+const EMAIL_RE = /^[^\s@?]+@[^\s@?]+\.[^\s@?]+$/;
 const fmt = (d) => new Date(d).toLocaleDateString('es-CO', { day: 'numeric', month: 'long' });
 
 /** Rastreo de pedido: el cliente escribe el número que recibió (VOLT-1001) y ve el estado. */
 export default function Track() {
   const [params] = useSearchParams();
   const [digits, setDigits] = useState((params.get('codigo') || '').replace(/\D/g, ''));
+  const [email, setEmail] = useState('');
   const [order, setOrder] = useState(null);
   const [status, setStatus] = useState({ type: 'idle', msg: '' });
 
   async function search(e) {
     e?.preventDefault();
     if (digits.length < 3) return setStatus({ type: 'error', msg: 'Escribe los números de tu pedido (por ejemplo 1001).' });
+    if (!EMAIL_RE.test(email.trim())) return setStatus({ type: 'error', msg: 'Escribe el correo con el que hiciste el pedido.' });
     setStatus({ type: 'loading', msg: '' });
     setOrder(null);
     try {
-      setOrder(await request(`/orders/track/VOLT-${digits}`));
+      setOrder(await request('/orders/track', { method: 'POST', body: { code: `VOLT-${digits}`, email: email.trim() } }));
       setStatus({ type: 'idle', msg: '' });
     } catch (err) {
       setStatus({ type: 'error', msg: err.message });
     }
   }
 
-  // Si el enlace trae ?codigo=1001, se consulta solo
-  useEffect(() => { if (digits) search(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const cancelled = order?.status === 'Cancelado';
   const current = order ? STEPS.indexOf(order.status) : -1;
@@ -38,7 +39,7 @@ export default function Track() {
   return (
     <section className="section narrow track">
       <div className="section-head"><h1>Rastrear pedido</h1></div>
-      <p className="muted">Escribe el número de pedido que recibiste en la confirmación de compra para conocer su estado.</p>
+      <p className="muted">Escribe el número de pedido y el correo con el que compraste para conocer su estado.</p>
       <form onSubmit={search} noValidate>
         <label className="field">
           <span>Número de pedido</span>
@@ -47,6 +48,7 @@ export default function Track() {
             <input inputMode="numeric" maxLength={8} value={digits} onChange={(e) => setDigits(e.target.value.replace(/\D/g, ''))} placeholder="1001" aria-label="Números del pedido" />
           </div>
         </label>
+        <label className="field"><span>Correo del pedido</span><input type="email" maxLength={120} value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" /></label>
         <button className="btn" disabled={status.type === 'loading'}>{status.type === 'loading' ? 'Buscando…' : 'Rastrear pedido →'}</button>
       </form>
       {status.type === 'loading' && <Spinner label="Buscando tu pedido…" />}

@@ -26,6 +26,9 @@ export function errorHandler(err, req, res, _next) {
   } else if (err.code === 11000) {
     status = 409;
     message = 'Ya existe un registro con ese valor único (por ejemplo, el SKU).';
+  } else if (err.type === 'entity.too.large' || err.status === 413) {
+    status = 413;
+    message = 'Los datos enviados son demasiado grandes. Reduce el tamaño e intenta de nuevo.';
   } else if (err.type === 'entity.parse.failed') {
     status = 400;
     message = 'El cuerpo de la solicitud no es un JSON válido.';

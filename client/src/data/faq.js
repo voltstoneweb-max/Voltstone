@@ -6,8 +6,8 @@ export const FAQ = [
   {
     group: 'Envíos',
     items: [
-      ['¿Cuánto cuesta el envío?', 'En Colombia el envío tiene un valor fijo de $10.000. El envío internacional se cotiza y se muestra antes de pagar.'],
-      ['¿Cuánto tarda en llegar mi pedido?', 'Cali y alrededores: 1 día hábil. Ciudades principales: 2 a 4 días hábiles. Ciudades intermedias: 3 a 5. Zonas remotas: 5 a 8. Internacional: 7 a 15 días.'],
+      ['¿Cuánto cuesta el envío?', 'En Colombia el envío tiene un valor fijo de $10.000. Por ahora solo enviamos dentro de Colombia.'],
+      ['¿Cuánto tarda en llegar mi pedido?', 'Cali y alrededores: 1 día hábil. Ciudades principales: 2 a 4 días hábiles. Ciudades intermedias: 3 a 5. Zonas remotas: 5 a 8. Los fines de semana y los festivos no cuentan como días hábiles.'],
       ['¿Cuándo sale mi pedido?', 'Si pagas antes de las 14:00 de un día hábil, sale ese mismo día. Si pagas después, sale el siguiente día hábil.']
     ]
   },
@@ -27,10 +27,9 @@ export const FAQ = [
     ]
   },
   {
-    group: 'Precios y reseñas',
+    group: 'Precios y reclamos',
     items: [
       ['¿Los precios incluyen IVA?', 'Sí. Los precios se muestran en pesos colombianos enteros, con el IVA del 19% incluido.'],
-      ['¿Quién puede dejar reseñas?', 'Solo compradores verificados.'],
       ['¿Cómo presento una petición, queja o reclamo?', 'Usa el formulario de contacto y elige "Petición, queja o reclamo". Recibirás un número de radicado y una respuesta en máximo 15 días hábiles.']
     ]
   }

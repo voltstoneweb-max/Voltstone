@@ -1,13 +1,23 @@
 import { Router } from 'express';
 import mongoose from 'mongoose';
-import Product from '../models/Product.js';
+import Product, { parseVariants } from '../models/Product.js';
 import { requireAdmin } from '../middleware/auth.js';
 import { asyncHandler, HttpError } from '../middleware/errors.js';
 
 const router = Router();
-const FIELDS = ['sku', 'name', 'category', 'genders', 'materials', 'price', 'description', 'colors', 'sizes', 'stock', 'imageUrl', 'active'];
+const FIELDS = ['sku', 'name', 'category', 'genders', 'materials', 'price', 'description', 'colors', 'imageUrl', 'active'];
 // Solo se aceptan campos conocidos (evita que el cliente escriba campos arbitrarios)
-const pick = (body) => Object.fromEntries(FIELDS.filter((f) => body[f] !== undefined).map((f) => [f, body[f]]));
+const pick = (body) => {
+  const data = Object.fromEntries(FIELDS.filter((f) => body[f] !== undefined).map((f) => [f, body[f]]));
+  // Stock por talla: llega como "S:6, M:10" o como objeto {S:6}; `sizes` se deriva de ahí
+  if (body.variants !== undefined) {
+    const variants = parseVariants(body.variants);
+    if (!variants) throw new HttpError(400, 'El stock por talla debe verse así: S:6, M:10, L:8 (números enteros).');
+    data.variants = variants;
+    data.sizes = variants.map((v) => v.size);
+  }
+  return data;
+};
 const SORT = { order: 1, sku: 1 }; // orden del catálogo maestro
 
 // Público: solo productos activos. Filtros opcionales ?gender=mujer&category=Pantalones
