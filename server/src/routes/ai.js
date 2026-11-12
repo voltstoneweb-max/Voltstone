@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
+import { skipInTests } from '../middleware/rateLimitSkip.js';
 import { chat, generateText } from '../services/ai.js';
 import { requireAdmin } from '../middleware/auth.js';
 import { asyncHandler, HttpError } from '../middleware/errors.js';
@@ -10,6 +11,7 @@ const router = Router();
 const aiLimiter = rateLimit({
   windowMs: 60 * 1000,
   limit: 12,
+  skip: skipInTests,
   message: { error: { message: 'Estás escribiendo muy rápido. Espera un minuto.' } }
 });
 

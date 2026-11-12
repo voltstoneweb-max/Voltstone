@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { randomInt } from 'node:crypto';
 import rateLimit from 'express-rate-limit';
+import { skipInTests } from '../middleware/rateLimitSkip.js';
 import Message, { REASONS } from '../models/Message.js';
 import { requireAdmin } from '../middleware/auth.js';
 import { asyncHandler, HttpError } from '../middleware/errors.js';
@@ -21,6 +22,7 @@ const LABELS = {
 const contactLimiter = rateLimit({
   windowMs: 10 * 60 * 1000,
   limit: 5,
+  skip: skipInTests,
   message: { error: { message: 'Enviaste muchos mensajes seguidos. Intenta en unos minutos.' } }
 });
 

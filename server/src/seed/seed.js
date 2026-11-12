@@ -1,6 +1,7 @@
 /**
  * Carga datos iniciales: el catálogo maestro (166 prendas) y el administrador único.
- * Uso: npm run seed   (borra y recrea los productos, el admin y los pedidos de ejemplo; no toca los mensajes ni las cuentas)
+ * Uso: npm run seed   (borra y recrea los productos, el admin y SOLO los 3 pedidos de ejemplo VOLT-1001 a 1003;
+ *                       no toca pedidos reales, contador de pedidos, mensajes ni cuentas de clientes)
  *      npm run seed -- --yes   (sin pedir confirmación)
  */
 import 'dotenv/config';
@@ -11,7 +12,6 @@ import { connectDB } from '../config/db.js';
 import Product from '../models/Product.js';
 import Admin from '../models/Admin.js';
 import Order from '../models/Order.js';
-import Counter from '../models/Counter.js';
 import { CATALOG } from '../data/catalog.js';
 
 // Stock por talla, igual para todas las prendas hasta que se ajuste desde el panel (sin números al azar)
@@ -55,7 +55,7 @@ try {
   if (!process.argv.includes('--yes')) {
     const host = MONGODB_URI.replace(/^mongodb(\+srv)?:\/\/[^@]*@/, '').split(/[/?]/)[0];
     const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-    const answer = await rl.question(`Esto BORRA los productos, el admin y los pedidos de ejemplo en ${host}. Escribe SI para continuar: `);
+    const answer = await rl.question(`Esto BORRA los productos, el admin y los 3 pedidos de ejemplo (VOLT-1001 a 1003) en ${host}. Los pedidos reales no se tocan. Escribe SI para continuar: `);
     rl.close();
     if (answer.trim().toUpperCase() !== 'SI') {
       console.log('Cancelado. No se tocó nada.');
@@ -72,8 +72,8 @@ try {
   await connectDB(MONGODB_URI);
   await Product.deleteMany({});
   await Product.insertMany(products);
-  await Order.deleteMany({});
-  await Counter.deleteMany({}); // la numeración real vuelve a empezar en VOLT-1004
+  // Solo se reemplazan los pedidos de ejemplo; los pedidos reales y el contador NO se tocan (si no, se repetirían los códigos VOLT-)
+  await Order.deleteMany({ code: { $in: demoOrders.map((o) => o.code) } });
   await Order.insertMany(demoOrders);
   await Admin.deleteMany({}); // un único administrador
   await Admin.create({ email: ADMIN_EMAIL, passwordHash: await bcrypt.hash(ADMIN_PASSWORD, 10) });

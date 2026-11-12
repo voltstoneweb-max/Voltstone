@@ -10,7 +10,10 @@
     "dev": "node --watch src/index.js",
     "start": "node src/index.js",
     "seed": "node src/seed/seed.js",
-    "test": "node --test tests/"
+    "test": "node scripts/run-tests.mjs unit && node scripts/run-tests.mjs integration",
+    "lint": "node scripts/check-syntax.mjs",
+    "test:unit": "node scripts/run-tests.mjs unit --coverage",
+    "test:integration": "node scripts/run-tests.mjs integration"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

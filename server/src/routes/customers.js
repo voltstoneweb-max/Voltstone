@@ -2,6 +2,7 @@ import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import rateLimit from 'express-rate-limit';
+import { skipInTests } from '../middleware/rateLimitSkip.js';
 import Customer from '../models/Customer.js';
 import { requireCustomer } from '../middleware/auth.js';
 import { asyncHandler, HttpError } from '../middleware/errors.js';
@@ -13,6 +14,7 @@ const DUMMY_HASH = bcrypt.hashSync('no-es-una-clave-real', 10);
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   limit: 15,
+  skip: skipInTests,
   message: { error: { message: 'Demasiados intentos. Espera 15 minutos.' } }
 });
 

@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import mongoose from 'mongoose';
 import rateLimit from 'express-rate-limit';
+import { skipInTests } from '../middleware/rateLimitSkip.js';
 import Order, { ORDER_STATUSES, FLOW, CANCELABLE, PAYMENT_METHODS, TERMS_VERSION } from '../models/Order.js';
 import Product from '../models/Product.js';
 import Counter from '../models/Counter.js';
@@ -17,11 +18,13 @@ const FIRST_REAL_ORDER = 1003; // los pedidos de ejemplo usan 1001 a 1003; el pr
 const trackLimiter = rateLimit({
   windowMs: 10 * 60 * 1000,
   limit: 30,
+  skip: skipInTests,
   message: { error: { message: 'Hiciste muchas consultas seguidas. Intenta en unos minutos.' } }
 });
 const buyLimiter = rateLimit({
   windowMs: 10 * 60 * 1000,
   limit: 10,
+  skip: skipInTests,
   message: { error: { message: 'Hiciste muchos pedidos seguidos. Intenta en unos minutos.' } }
 });
 

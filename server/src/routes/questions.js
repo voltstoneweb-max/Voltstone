@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import mongoose from 'mongoose';
 import rateLimit from 'express-rate-limit';
+import { skipInTests } from '../middleware/rateLimitSkip.js';
 import Question from '../models/Question.js';
 import Product from '../models/Product.js';
 import { requireAdmin } from '../middleware/auth.js';
@@ -12,6 +13,7 @@ const EMAIL_RE = /^[^\s@?]+@[^\s@?]+\.[^\s@?]+$/; // sin espacios ni signos de p
 const askLimiter = rateLimit({
   windowMs: 10 * 60 * 1000,
   limit: 5,
+  skip: skipInTests,
   message: { error: { message: 'Enviaste muchas preguntas seguidas. Intenta en unos minutos.' } }
 });
 
