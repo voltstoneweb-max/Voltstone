@@ -29,6 +29,7 @@ test.describe.serial('compra completa, rastreo y despacho (punto a punto)', () =
 
     await expect(page).toHaveURL(/#\/pago/);
     await expect(page.getByRole('heading', { name: 'Pago', exact: true })).toBeVisible();
+    });
 
   test('2. el formulario de pago valida y luego confirma el pedido', async ({ page, request }) => {
     // Nueva página = sesión nueva: se inicia sesión con la cuenta creada en el paso anterior
