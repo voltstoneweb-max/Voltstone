@@ -1,27 +1,51 @@
-# Publica el frontend en GitHub Pages cada vez que se hace push a main.
-# Requisitos (una sola vez): Settings > Pages > Source = "GitHub Actions"
-# y Settings > Secrets and variables > Actions > Variables > VITE_API_URL = URL del backend + /api
+# Despliega el frontend en GitHub Pages SOLO cuando el CI terminó bien en main.
+# Después comprueba que la web y la API responden; si no, vuelve automáticamente a la última versión buena.
+# Rollback manual: Actions > "Deploy to GitHub Pages" > Run workflow > ref = commit/etiqueta de una versión buena.
+# Requisitos (una sola vez): Settings > Pages > Source = "GitHub Actions" y
+# Settings > Secrets and variables > Actions > Variables > VITE_API_URL = URL del backend + /api
 name: Deploy to GitHub Pages
 on:
-  push:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
     branches: [main]
   workflow_dispatch:
+    inputs:
+      ref:
+        description: "Commit, etiqueta o rama a desplegar (para volver a una versión anterior)"
+        default: main
+      is_rollback:
+        description: "Marca interna: evita que un rollback dispare otro rollback"
+        type: boolean
+        default: false
+
 permissions:
   contents: read
   pages: write
   id-token: write
+  actions: write
+
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
+
 jobs:
   build:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
         with:
-          node-version: 20
-      - run: npm install --prefix client
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || github.event.workflow_run.head_sha }}
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm, cache-dependency-path: client/package-lock.json }
+      - name: Verificar VITE_API_URL
+        run: |
+          if [ -z "${{ vars.VITE_API_URL }}" ]; then
+            echo "::error::Falta la variable VITE_API_URL (Settings > Secrets and variables > Actions > Variables). Sin ella la web publicada apuntaría a localhost."
+            exit 1
+          fi
+      - run: npm ci --prefix client
       - run: npm run build --prefix client
         env:
           VITE_BASE: /${{ github.event.repository.name }}/
@@ -29,12 +53,57 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with:
           path: client/dist
+
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    outputs:
+      page_url: ${{ steps.deployment.outputs.page_url }}
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
+
+  verify:
+    name: Verificar después de publicar
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: La web publicada responde con la app
+        run: |
+          URL="${{ needs.deploy.outputs.page_url || format('https://{0}.github.io/{1}/', github.repository_owner, github.event.repository.name) }}"
+          for i in $(seq 1 12); do
+            if curl -sf "$URL" | grep -q 'id="root"'; then echo "Web OK: $URL"; exit 0; fi
+            sleep 10
+          done
+          echo "::error::La web publicada no responde: $URL"; exit 1
+      - name: La API responde (Render gratis puede tardar ~1 minuto en despertar)
+        run: |
+          for i in $(seq 1 18); do
+            if curl -sf "${{ vars.VITE_API_URL }}/health" | grep -q '"ok":true'; then echo "API OK"; exit 0; fi
+            sleep 10
+          done
+          echo "::error::La API no responde en ${{ vars.VITE_API_URL }}/health"; exit 1
+      - name: El catálogo público devuelve prendas
+        run: |
+          curl -sf "${{ vars.VITE_API_URL }}/products" | grep -q '"sku"' || { echo "::error::El catálogo vino vacío o con error"; exit 1; }
+
+  rollback:
+    name: Rollback automático
+    needs: verify
+    if: ${{ always() && needs.verify.result == 'failure' && !inputs.is_rollback }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Volver a la última versión que sí funcionó
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          SHA=$(gh run list --workflow deploy.yml --event workflow_run --status success --limit 1 --json headSha --jq '.[0].headSha')
+          if [ -z "$SHA" ] || [ "$SHA" = "null" ]; then
+            echo "::error::No hay una versión anterior buena a la que volver. Despliega a mano una versión conocida."; exit 1
+          fi
+          echo "Volviendo a $SHA"
+          gh workflow run deploy.yml -f ref="$SHA" -f is_rollback=true

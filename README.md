@@ -59,16 +59,24 @@ Los valores reales nunca se suben al repositorio (`.env` está en `.gitignore`).
 | `server/.env` | `PORT`, `MONGODB_URI`, `JWT_SECRET`, `CLIENT_ORIGIN`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `GEMINI_API_KEY`, `GEMINI_MODEL`, `AI_DAILY_LIMIT` |
 | `client/.env.local` | `VITE_API_URL` |
 
-## Pruebas
+## Pruebas y CI/CD
 
-Con el servidor encendido:
+Las pruebas viven en tres capas y corren solas en cada push (`.github/workflows/ci.yml`):
 
-```bash
-cd server
-node --test tests/api.test.mjs
-```
+| Capa | Qué comprueba | Dónde | Comando |
+|---|---|---|---|
+| **Unitarias** | Una función: entregas y festivos, validadores de modelos, errores, permisos JWT, formato de precios | `server/tests/unit`, `client/tests` | `npm test` |
+| **Integración** | API + MongoDB: compra, stock por talla, cancelación, permisos, carrera por la última unidad | `server/tests/api.test.mjs`, `server/tests/integration` | `npm run test:integration` (API y base encendidas, `TEST_BUY=1`, `TEST_ADMIN_*`) |
+| **Punto a punto** | Navegador real: registro, bolsa, pago, rastreo, panel de administración, VoltBot, móvil | `e2e/` (Playwright) | `npm run install:e2e` y `npm run test:e2e` (ver `e2e/README.md`) |
 
-Verifican el catálogo, el filtro por género, la protección de rutas de administración, el rechazo de tokens falsos, el login incorrecto, la validación del contacto y del chat, el CORS y los encabezados de seguridad.
+Además: `npm run lint` revisa la sintaxis del servidor y el CI compila el cliente.
+
+**Orden del CI:** lint y build -> unitarias -> integración -> punto a punto. El despliegue (`deploy.yml`) solo arranca si el CI de `main` terminó bien.
+
+**Después de publicar** se verifica que la web, `/api/health` y el catálogo respondan. Si falla, el workflow vuelve solo a la última versión buena (rollback automático).
+**Rollback manual:** Actions > *Deploy to GitHub Pages* > *Run workflow* > `ref` = commit o etiqueta de una versión buena.
+
+`RATE_LIMIT_SKIP=1` desactiva los límites de peticiones solo para el CI; se ignora cuando `NODE_ENV=production`.
 
 ## Seguridad
 

@@ -9,6 +9,10 @@
     "dev:client": "npm --prefix client run dev",
     "seed": "npm --prefix server run seed",
     "build": "npm --prefix client run build",
-    "test": "npm --prefix server test"
+    "test": "npm --prefix server run test:unit && npm --prefix client test",
+    "lint": "npm --prefix server run lint",
+    "test:integration": "npm --prefix server run test:integration",
+    "test:e2e": "npm --prefix e2e test",
+    "install:e2e": "npm --prefix e2e install && npx --prefix e2e playwright install --with-deps chromium"
   }
 }
