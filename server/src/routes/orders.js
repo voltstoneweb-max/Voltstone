@@ -4,7 +4,7 @@ import rateLimit from 'express-rate-limit';
 import Order, { ORDER_STATUSES, PAYMENT_METHODS } from '../models/Order.js';
 import Product from '../models/Product.js';
 import Counter from '../models/Counter.js';
-import { requireAdmin, requireCustomer, optionalCustomer } from '../middleware/auth.js';
+import { requireAdmin, requireCustomer } from '../middleware/auth.js';
 import { asyncHandler, HttpError } from '../middleware/errors.js';
 import { CITIES, SHIPPING_FEE, estimateDelivery } from '../data/shipping.js';
 
@@ -57,11 +57,11 @@ async function nextCode() {
   return `VOLT-${FIRST_REAL_ORDER + c.seq}`;
 }
 
-// Crear pedido (invitado o con sesión). El precio y el stock se toman SIEMPRE de la base de datos, nunca del navegador.
+// Crear pedido (solo con sesión iniciada). El precio y el stock se toman SIEMPRE de la base de datos, nunca del navegador.
 router.post(
   '/',
   buyLimiter,
-  optionalCustomer,
+  requireCustomer, // comprar exige una cuenta: iniciar sesión o crearla
   asyncHandler(async (req, res) => {
     const b = req.body || {};
     const text = (v) => (typeof v === 'string' ? v.trim() : '');
@@ -115,7 +115,7 @@ router.post(
       const order = await Order.create({
         code: await nextCode(),
         status,
-        customer: req.customer?.id,
+        customer: req.customer.id,
         customerName: name,
         customerEmail: email,
         customerPhone: phone,
@@ -163,6 +163,21 @@ router.patch(
     order.history.push({ status });
     await order.save();
     res.json(order);
+  })
+);
+
+// Admin: quitar un pedido (por ejemplo, uno de prueba). Si seguía en curso, repone el stock.
+router.delete(
+  '/:code',
+  requireAdmin,
+  asyncHandler(async (req, res) => {
+    const order = await Order.findOne({ code: String(req.params.code).toUpperCase() });
+    if (!order) throw new HttpError(404, 'El pedido no existe.');
+    if (!['Cancelado', 'Entregado'].includes(order.status)) {
+      for (const it of order.items) if (it.product) await Product.updateOne({ _id: it.product }, { $inc: { stock: it.qty } });
+    }
+    await order.deleteOne();
+    res.json({ ok: true, code: order.code });
   })
 );
 

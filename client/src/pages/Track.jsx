@@ -54,6 +54,7 @@ export default function Track() {
 
       {order && (
         <div className="track-card">
+          <button className="card-x" onClick={() => setOrder(null)} aria-label="Cerrar resultado">✕</button>
           <div className="between row"><h2>{order.code}</h2><span className={`badge ${cancelled ? 'out' : ''}`}>{order.status}</span></div>
           {!cancelled && order.estimatedDelivery && order.status !== 'Entregado' && <p>Entrega estimada: <strong>{fmt(order.estimatedDelivery)}</strong> en {order.city}.</p>}
           {order.status === 'Entregado' && <p>Entregado en {order.city}.</p>}

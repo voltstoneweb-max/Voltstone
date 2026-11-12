@@ -26,6 +26,20 @@ export default function Checkout() {
     );
   }
 
+  // Comprar exige una cuenta: se invita a iniciar sesión o crearla y se vuelve aquí (la bolsa se conserva)
+  if (!user) {
+    return (
+      <section className="section narrow">
+        <div className="section-head"><h1>Pago</h1></div>
+        <p>Para terminar tu compra necesitas iniciar sesión o crear una cuenta. Tu bolsa se conserva.</p>
+        <div className="row">
+          <Link className="btn" to="/cuenta?volver=/pago">Iniciar sesión o crear cuenta</Link>
+          <Link className="btn btn-ghost" to="/catalogo">Seguir comprando</Link>
+        </div>
+      </section>
+    );
+  }
+
   const fee = ship?.fee ?? 10000;
   const total = subtotal + fee;
   const iva = Math.round(subtotal - subtotal / 1.19); // el precio ya incluye IVA: aquí solo se desglosa
@@ -47,6 +61,7 @@ export default function Checkout() {
       clear();
       go(`/pedido/${code}`);
     } catch (err) {
+      if (!customer.get()) { go('/cuenta?volver=/pago'); return; } // la sesión venció
       setStatus({ type: 'error', msg: err.message });
     }
   }
@@ -56,7 +71,6 @@ export default function Checkout() {
       <div className="section-head"><h1>Pago</h1></div>
       <form onSubmit={submit} noValidate className="co-grid">
         <div>
-          {!user && <p className="muted small">¿Ya tienes cuenta? <Link className="link" to="/cuenta">Inicia sesión</Link> para ver tus pedidos. También puedes comprar como invitado.</p>}
           <h2>Datos de entrega</h2>
           <div className="two">
             <label className="field"><span>Nombre</span><input maxLength={80} value={form.name} onChange={set('name')} autoComplete="name" /></label>

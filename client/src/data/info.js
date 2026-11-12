@@ -11,7 +11,7 @@ export const INFO = {
     title: 'Términos y condiciones',
     updated: UPDATED,
     sections: [
-      ['Quiénes somos', ['VOLTSTONE CALI SAS es una marca de ropa urbana para hombre y mujer con sede en el barrio San Fernando, en Cali, Colombia. Vendemos solo por internet. Es una empresa ficticia con fines académicos: los datos comerciales y legales son simulados.']],
+      ['Quiénes somos', ['VOLTSTONE CALI SAS es una tienda de ropa en línea para hombre y mujer con sede en el barrio San Fernando, en Cali, Colombia. Vendemos solo por internet. Es una empresa ficticia con fines académicos: los datos comerciales y legales son simulados.']],
       ['Uso del sitio', ['Puedes ver el catálogo y rastrear un pedido sin crear una cuenta. Para crear una cuenta debes ser mayor de edad y dar datos verdaderos. Eres responsable de guardar tu clave y de lo que se haga con tu cuenta.']],
       ['Precios y pagos', ['Los precios están en pesos colombianos, sin decimales, con el IVA incluido. Los medios de pago son tarjeta, PSE y contra entrega. La pasarela de pago de este sitio es una simulación: no te pedimos ni guardamos datos de tarjeta.']],
       ['Pedidos', ['Tu pedido queda confirmado cuando el pago se registra. Verás un recibo en pantalla (no enviamos PDF) y un número de pedido para rastrearlo. Los estados son: Pendiente, Pagado, En preparación, Empacado, Enviado, Entregado y Cancelado. Solo puedes cancelar antes del despacho.']],
@@ -98,7 +98,7 @@ export const INFO = {
     title: 'Nuestra marca',
     updated: null,
     sections: [
-      ['Quiénes somos', ['VOLTSTONE es una marca colombiana de ropa urbana para hombre y mujer, pensada para el clima cálido. Diseñamos y fabricamos nuestra ropa en nuestra propia sede en Cali.']],
+      ['Quiénes somos', ['VOLTSTONE es una tienda de ropa en línea de Colombia para hombre y mujer, pensada para el clima cálido. Diseñamos y fabricamos nuestra ropa en nuestra propia sede en Cali.']],
       ['Qué nos mueve', ['Tecnología que impulsa tu estilo: prendas cómodas, con telas pensadas para el calor y un diseño que se ve bien todos los días.']],
       ['Colección', ['Colección Urban, temporada 2026.']]
     ]

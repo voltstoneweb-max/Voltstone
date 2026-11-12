@@ -6,14 +6,6 @@ import ErrorBox from '../components/ErrorBox.jsx';
 import { Spinner } from '../components/Loader.jsx';
 import ProductCard from '../components/ProductCard.jsx';
 
-// Datos verificables del documento de empresa v3 (sin promesas difíciles de comprobar)
-const FACTS = [
-  ['Hombre y mujer', 'Ropa urbana para clima cálido'],
-  ['Hecha en Cali', 'Diseño y fabricación propios'],
-  ['$10.000', 'Envío fijo en Colombia'],
-  ['30 días', 'Garantía por defectos de fabricación']
-];
-
 // Atajos del Centro de ayuda a la vista desde el inicio (como en Amazon y Mercado Libre)
 const HELP = [
   ['Rastrear mi pedido', '/rastreo'],
@@ -50,20 +42,12 @@ export default function Home() {
             <motion.span className="accent" {...line(2)}>tu estilo</motion.span>
           </h1>
           <motion.p className="hero-sub" {...line(3)}>
-            VOLTSTONE es ropa urbana para hombre y mujer, pensada para el clima cálido y fabricada en Cali.
+            Tienda de ropa en línea en Colombia para hombre y mujer, pensada para el clima cálido y fabricada en Cali.
           </motion.p>
           <motion.div className="row" {...line(4)}>
             <Link className="btn" to="/catalogo">Ver catálogo completo</Link>
             <Link className="btn btn-ghost" to="/ayuda">Centro de ayuda</Link>
           </motion.div>
-        </div>
-      </section>
-
-      <section className="facts-band theme-dark">
-        <div className="facts">
-          {FACTS.map(([big, small]) => (
-            <div key={big} className="fact"><strong>{big}</strong><span>{small}</span></div>
-          ))}
         </div>
       </section>
 

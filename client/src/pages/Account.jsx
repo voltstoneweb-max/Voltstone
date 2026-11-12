@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { customer, request } from '../api.js';
 import ErrorBox from '../components/ErrorBox.jsx';
 import { useApi } from '../hooks/useApi.js';
@@ -35,6 +35,10 @@ function MyOrders() {
 /** Cuenta del cliente: iniciar sesión, crear cuenta (con aceptación de términos y datos) y ver el perfil. */
 export default function Account() {
   const [user, setUser] = useState(customer.get());
+  const [params] = useSearchParams();
+  const go = useNavigate();
+  const back = params.get('volver');
+  const goBack = back && back.startsWith('/') ? back : null; // solo rutas internas
   const [mode, setMode] = useState('login');
   const [form, setForm] = useState({ name: '', email: '', password: '', acceptTerms: false, acceptDataPolicy: false });
   const [status, setStatus] = useState({ type: 'idle', msg: '' });
@@ -44,6 +48,9 @@ export default function Account() {
   useEffect(() => {
     if (user) request('/customers/me', { asCustomer: true }).catch(() => setUser(null));
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Si ya hay sesión y venías de otra página (por ejemplo, el pago), vuelve allá
+  useEffect(() => { if (user && goBack) go(goBack, { replace: true }); }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function submit(e) {
     e.preventDefault();
@@ -85,6 +92,7 @@ export default function Account() {
   return (
     <section className="section narrow">
       <div className="section-head"><h1>{mode === 'login' ? 'Iniciar sesión' : 'Crear cuenta'}</h1></div>
+      {goBack && <p className="alert alert-ok" role="status">Para comprar necesitas una cuenta. Inicia sesión o crea una; tu bolsa se conserva.</p>}
       <div className="filter" role="tablist" aria-label="Cuenta">
         <button role="tab" aria-selected={mode === 'login'} className={`chip ${mode === 'login' ? 'active' : ''}`} onClick={() => { setMode('login'); setStatus({ type: 'idle', msg: '' }); }}>Ingresar</button>
         <button role="tab" aria-selected={mode === 'register'} className={`chip ${mode === 'register' ? 'active' : ''}`} onClick={() => { setMode('register'); setStatus({ type: 'idle', msg: '' }); }}>Crear cuenta</button>

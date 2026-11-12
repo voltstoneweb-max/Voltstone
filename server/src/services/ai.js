@@ -33,32 +33,43 @@ function checkDailyCap() {
   usage.count += 1;
 }
 
-/** Llama a Gemini por REST (sin SDK). La clave vive solo en el servidor. */
+// Modelos a probar en orden: primero el configurado en GEMINI_MODEL (Render) y luego respaldos
+const MODELS = [...new Set([process.env.GEMINI_MODEL, 'gemini-2.5-flash-lite', 'gemini-2.5-flash', 'gemini-2.0-flash'].filter(Boolean))];
+
+/** Llama a Gemini por REST (sin SDK). La clave vive solo en el servidor. Si un modelo falla, prueba el siguiente. */
 async function callGemini(system, contents, maxOutputTokens = 400) {
   checkDailyCap();
-  const model = process.env.GEMINI_MODEL || 'gemini-2.0-flash';
-  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': process.env.GEMINI_API_KEY },
-    body: JSON.stringify({
-      systemInstruction: { parts: [{ text: system }] },
-      contents,
-      generationConfig: { temperature: 0.6, maxOutputTokens }
-    })
-  });
-  if (!res.ok) {
-    console.error('Gemini error', res.status, await res.text());
-    throw new HttpError(502, 'La IA no está disponible en este momento. Intenta de nuevo en un momento.');
+  for (const model of MODELS) {
+    try {
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': process.env.GEMINI_API_KEY },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: system }] },
+          contents,
+          generationConfig: { temperature: 0.6, maxOutputTokens }
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const text = data?.candidates?.[0]?.content?.parts?.map((p) => p.text).join('') || '';
+        if (text) return text.trim();
+        console.error('Gemini sin texto', model, JSON.stringify(data).slice(0, 300));
+        continue;
+      }
+      console.error('Gemini error', model, res.status, (await res.text()).slice(0, 400));
+      if (res.status === 401 || res.status === 403) break; // clave inválida o sin permiso: otro modelo no ayuda
+    } catch (err) {
+      console.error('Gemini no respondió', model, err.message);
+    }
   }
-  const data = await res.json();
-  const text = data?.candidates?.[0]?.content?.parts?.map((p) => p.text).join('') || '';
-  if (!text) throw new HttpError(502, 'La IA no devolvió una respuesta. Intenta reformular tu pregunta.');
-  return text.trim();
+  throw new HttpError(502, 'La IA no está disponible en este momento. Intenta de nuevo en un momento.');
 }
 
-/** Respuesta sin IA (si no hay clave): permite probar y defender el proyecto sin costo. */
+/** Respuesta sin IA (si no hay clave o la IA falla): VoltBot nunca se queda sin contestar. */
 async function fallbackReply(message) {
-  const q = message.toLowerCase();
+  const q = message.toLowerCase().trim();
+  if (/^(hola|buen[oa]s|hey|saludos|holi)/.test(q)) return '¡Hola! Soy VoltBot, el asistente de VOLTSTONE. Puedo ayudarte con prendas, tallas, envíos, cambios y garantía. ¿Qué necesitas?';
   if (/(env[ií]o|entrega|demora|cu[aá]nto tarda)/.test(q)) return BRAND.policies[1] + ' ' + BRAND.policies[2];
   if (/(devol|retract|cambio|garant|reembols)/.test(q)) return BRAND.policies.slice(4, 8).join(' ');
   if (/(contact|tel[eé]fono|correo)/.test(q)) return BRAND.contact;
@@ -74,7 +85,13 @@ export async function chat(message, history = []) {
       .map((h) => ({ role: h.role === 'bot' ? 'model' : 'user', parts: [{ text: h.text.slice(0, 500) }] })),
     { role: 'user', parts: [{ text: message }] }
   ];
-  return callGemini(await buildSystemPrompt(), contents);
+  try {
+    return await callGemini(await buildSystemPrompt(), contents);
+  } catch (err) {
+    if (err instanceof HttpError && err.status === 429) throw err; // tope diario: se le avisa al cliente
+    console.error('VoltBot respondió sin IA por:', err.message);
+    return fallbackReply(message);
+  }
 }
 
 const KINDS = {

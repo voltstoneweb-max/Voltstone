@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext.jsx';
+import { customer } from '../api.js';
 import { cop, imgSrc } from '../utils/format.js';
 
 const SHIPPING = 10000; // envío fijo (el servidor confirma el valor al pagar)
@@ -18,7 +19,7 @@ export default function BagDrawer() {
   }, [drawer.open, closeBag]);
 
   if (!drawer.open) return null;
-  const pay = () => { closeBag(); go('/pago'); };
+  const pay = () => { closeBag(); go(customer.get() ? '/pago' : '/cuenta?volver=/pago'); };
 
   return (
     <div className="drawer-back" onClick={closeBag}>

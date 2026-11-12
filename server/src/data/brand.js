@@ -7,7 +7,7 @@ export const BRAND = {
   slogan: 'Tecnología que impulsa tu estilo',
   tone: 'Cercano, moderno, directo y claro. Sin afirmaciones comerciales difíciles de comprobar. Español de Colombia, tuteo.',
   about:
-    'VOLTSTONE CALI SAS es una marca colombiana de ropa urbana para hombre y mujer, pensada para clima cálido. Diseña y fabrica su ropa en su propia sede en Cali. Vende solo por internet (sin local abierto al público). Colección Urban, temporada 2026. Es una empresa ficticia con fines académicos.',
+    'VOLTSTONE CALI SAS es una tienda de ropa en línea de Colombia para hombre y mujer, pensada para clima cálido. Diseña y fabrica su ropa en su propia sede en Cali. Vende solo por internet (sin local abierto al público). Colección Urban, temporada 2026. Es una empresa ficticia con fines académicos.',
   policies: [
     'Precios en pesos colombianos enteros, con IVA del 19% incluido.',
     'Envío fijo de $10.000 en Colombia. Envío internacional: se cotiza y se muestra antes de pagar.',

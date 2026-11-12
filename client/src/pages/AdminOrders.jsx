@@ -13,6 +13,10 @@ export default function AdminOrders() {
     if (status === 'Cancelado' && !window.confirm(`¿Cancelar ${code}? Se repondrá el stock y no se podrá volver a cambiar.`)) return;
     request(`/orders/${code}/status`, { method: 'PATCH', admin: true, body: { status } }).then(reload).catch((e) => { alert(e.message); reload(); });
   };
+  const remove = (code) => {
+    if (!window.confirm(`¿Quitar el pedido ${code}? Si seguía en curso, se repone su stock. No se puede deshacer.`)) return;
+    request(`/orders/${code}`, { method: 'DELETE', admin: true }).then(reload).catch((e) => alert(e.message));
+  };
   return (
     <>
       <h2>Pedidos</h2>
@@ -22,7 +26,7 @@ export default function AdminOrders() {
       {data && data.length > 0 && (
         <div className="table-wrap">
           <table>
-            <thead><tr><th>Pedido</th><th>Cliente</th><th>Entrega</th><th>Prendas</th><th>Total</th><th>Estado</th></tr></thead>
+            <thead><tr><th>Pedido</th><th>Cliente</th><th>Entrega</th><th>Prendas</th><th>Total</th><th>Estado</th><th><span className="sr-only">Quitar</span></th></tr></thead>
             <tbody>
               {data.map((o) => (
                 <tr key={o._id}>
@@ -36,6 +40,7 @@ export default function AdminOrders() {
                       {STATUSES.map((s) => <option key={s}>{s}</option>)}
                     </select>
                   </td>
+                  <td><button className="x-btn" onClick={() => remove(o.code)} aria-label={`Quitar ${o.code}`} title="Quitar pedido">✕</button></td>
                 </tr>
               ))}
             </tbody>
