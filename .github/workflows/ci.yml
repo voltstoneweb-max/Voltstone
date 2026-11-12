@@ -1,0 +1,121 @@
+# CI: nada llega a producción sin pasar por aquí.
+# lint -> unitarias -> integración (API + MongoDB) -> punto a punto (navegador real)
+name: CI
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: 22
+  # Datos SOLO de prueba: base temporal dentro del propio job, nada real.
+  PORT: 4000
+  MONGODB_URI: mongodb://127.0.0.1:27017/voltstone_test
+  JWT_SECRET: clave-de-prueba-solo-para-ci-0123456789abcdef
+  CLIENT_ORIGIN: http://localhost:5173,http://localhost:4173
+  ADMIN_EMAIL: admin-test@voltstone.co
+  ADMIN_PASSWORD: clave-de-prueba-123
+  RATE_LIMIT_SKIP: "1"
+
+jobs:
+  lint:
+    name: Lint y build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "${{ env.NODE_VERSION }}", cache: npm, cache-dependency-path: "**/package-lock.json" }
+      - run: npm ci --prefix server
+      - run: npm ci --prefix client
+      - run: npm run lint --prefix server
+      - name: El cliente compila
+        run: npm run build --prefix client
+        env: { VITE_API_URL: "http://localhost:4000/api" }
+
+  unit:
+    name: Pruebas unitarias
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "${{ env.NODE_VERSION }}", cache: npm, cache-dependency-path: "**/package-lock.json" }
+      - run: npm ci --prefix server
+      - run: npm ci --prefix client
+      - name: Servidor (con cobertura)
+        run: npm run test:unit --prefix server | tee unit-coverage.txt
+      - name: Cliente
+        run: npm test --prefix client
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: cobertura-unitarias, path: unit-coverage.txt }
+
+  integration:
+    name: Integración (API + MongoDB)
+    runs-on: ubuntu-latest
+    services:
+      mongo:
+        image: mongo:7
+        ports: ["27017:27017"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "${{ env.NODE_VERSION }}", cache: npm, cache-dependency-path: "**/package-lock.json" }
+      - run: npm ci --prefix server
+      - run: npm run seed --prefix server -- --yes
+      - name: Encender el servidor
+        run: |
+          nohup npm start --prefix server > server.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf http://localhost:4000/api/health && exit 0; sleep 1; done
+          cat server.log; exit 1
+      - name: Pruebas de integración
+        run: npm run test:integration --prefix server
+        env:
+          TEST_ADMIN_EMAIL: ${{ env.ADMIN_EMAIL }}
+          TEST_ADMIN_PASSWORD: ${{ env.ADMIN_PASSWORD }}
+          TEST_REGISTER: "1"
+          TEST_BUY: "1"
+      - if: failure()
+        run: cat server.log
+
+  e2e:
+    name: Punto a punto (Playwright)
+    needs: [lint, unit]
+    runs-on: ubuntu-latest
+    services:
+      mongo:
+        image: mongo:7
+        ports: ["27017:27017"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "${{ env.NODE_VERSION }}", cache: npm, cache-dependency-path: "**/package-lock.json" }
+      - run: npm ci --prefix server
+      - run: npm ci --prefix client
+      - run: npm install --prefix e2e
+      - run: npx --prefix e2e playwright install --with-deps chromium
+      - run: npm run seed --prefix server -- --yes
+      - name: Encender el servidor
+        run: |
+          nohup npm start --prefix server > server.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf http://localhost:4000/api/health && exit 0; sleep 1; done
+          cat server.log; exit 1
+      - name: Pruebas punto a punto
+        run: npm --prefix e2e test
+        env:
+          CI: "true"
+          API_URL: http://localhost:4000/api
+          E2E_ADMIN_EMAIL: ${{ env.ADMIN_EMAIL }}
+          E2E_ADMIN_PASSWORD: ${{ env.ADMIN_PASSWORD }}
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: informe-e2e
+          path: |
+            e2e/playwright-report
+            e2e/test-results
+            server.log
+          retention-days: 7

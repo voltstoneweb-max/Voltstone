@@ -1,6 +1,7 @@
 /**
  * Pruebas automáticas de la API (sin librerías: usa node:test de Node 20).
- * Requisito: el servidor debe estar corriendo (npm run dev:server).
+ * Requisito: el servidor debe estar corriendo (npm run dev:server). En GitHub se levantan solos
+ * (.github/workflows/test.yml: MongoDB temporal + seed + servidor + estas pruebas).
  *
  * Uso local:      npm test
  * Contra Render:  $env:API_URL="https://TU-SERVICIO.onrender.com/api"; npm test
