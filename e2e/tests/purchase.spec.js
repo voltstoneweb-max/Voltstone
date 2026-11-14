@@ -113,7 +113,8 @@ test.describe.serial('compra completa, rastreo y despacho (punto a punto)', () =
     await page.getByRole('button', { name: /Rastrear pedido/ }).click();
     await expect(page.getByText('En preparación').first()).toBeVisible();
 
-    // Cancelar repone el stock
+    // Cancelar repone el stock (la app pide confirmación con window.confirm)
+    admin.once('dialog', (dialog) => dialog.accept());
     await estado.selectOption('Cancelado');
     await expect(estado).toBeDisabled();
     await expect.poll(async () => {
