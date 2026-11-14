@@ -62,7 +62,7 @@ test.describe.serial('compra completa, rastreo y despacho (punto a punto)', () =
     codigo = (await page.locator('.case-box strong').innerText()).trim();
     expect(codigo).toMatch(/^VOLT-\d+$/);
     await expect(page.getByText('Pago confirmado').first()).toBeVisible();
-    await expect(page.getByText(/\$10\.000/)).toBeVisible(); // envío fijo en el recibo
+    await expect(page.getByText('$10.000', { exact: true })).toBeVisible(); // envío fijo en el recibo
   });
 
   test('3. la base de datos descontó el stock de la talla comprada', async ({ request }) => {
